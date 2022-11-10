@@ -33,8 +33,9 @@ pub fn on_received_cw20_funds(deps: DepsMut,
         register(deps, &env, &contract)?;
     }
     let master = env.contract.address;
-    let recipient_submsg = from_binary::<ReceiveSubmsg>(&msg)?;
-    let recipient = recipient_submsg.recipient;
+    // let recipient_submsg = from_binary::<ReceiveSubmsg>(&msg)?;
+    // let recipient = recipient_submsg.recipient;
+    let recipient = sender;
 
     let denom = get_denom(&master, &contract);
     let coins_to_mint = Coin::new(amount.u128(), denom );

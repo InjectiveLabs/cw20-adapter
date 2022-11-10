@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    Binary, Deps, DepsMut, entry_point, Env, MessageInfo, Response, StdResult, to_binary,
+    Binary, Deps, DepsMut, entry_point, Env, MessageInfo, Response, StdResult, to_binary, Empty,
 };
 use injective_cosmwasm::InjectiveMsgWrapper;
 
@@ -14,8 +14,8 @@ pub fn instantiate(
     deps: DepsMut,
     _env: Env,
     _info: MessageInfo,
-    msg: InstantiateMsg,
-) -> StdResult<Response> {
+    _msg: InstantiateMsg,
+) -> StdResult<Response<InjectiveMsgWrapper>> {
     cw2::set_contract_version(deps.storage, CONTRACT_NAME, CONTRACT_VERSION)?;
     Ok(Response::new())
 }

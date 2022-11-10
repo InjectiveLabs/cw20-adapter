@@ -32,3 +32,7 @@ lto = true
 opt-level = 3
 overflow-checks = true
 rpath = false
+
+[patch.crates-io]
+cw-multi-test = { git = "https://github.com/Tofel/cw-multi-test.git", branch ="feat/custom_address_generator" }
+cw20-base = { path = "../cw-plus/contracts/cw20-base" }
