@@ -3,7 +3,7 @@ use cosmwasm_std::{
     Empty, OwnedDeps,
 };
 
-use steak::hub::{Config, InstantiateMsg};
+use cw20_adapter::msg::{Config, InstantiateMsg};
 use steak_hub::{contract, execute, query, error::ContractError};
 
 fn setup_test() -> OwnedDeps<MockStorage, MockApi, MockQuerier, Empty> {

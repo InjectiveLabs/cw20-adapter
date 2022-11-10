@@ -1,5 +1,5 @@
 [package]
-name          = "steak-hub"
+name          = "cw20-adapter"
 description   = "Description of the contract"
 version       = { workspace = true }
 authors       = { workspace = true }
@@ -24,6 +24,9 @@ library = []
 cosmwasm-schema = { workspace = true }
 cosmwasm-std    = { workspace = true }
 cw2             = { workspace = true }
+cw20            = { workspace = true }
 cw-storage-plus = { workspace = true }
-steak           = { workspace = true }
 thiserror       = { workspace = true }
+cw-item-set     = { workspace = true }
+regex           = { workspace = true }
+injective-cosmwasm  = { workspace = true }

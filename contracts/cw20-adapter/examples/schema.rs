@@ -1,6 +1,6 @@
 use cosmwasm_schema::write_api;
 
-use steak::hub;
+use cw20_adapter::msg;
 
 fn main() {
     write_api! {
