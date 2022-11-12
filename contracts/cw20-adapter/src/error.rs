@@ -11,5 +11,8 @@ pub enum ContractError {
     #[error("CW-20 contract with the same address was already registered")]
     ContractAlreadyRegistered,
 
+    #[error("Adapter is missing balance to create a new token-factory denom")]
+    NotEnoughBalanceToPayDenomCreationFee,
+
 
 }

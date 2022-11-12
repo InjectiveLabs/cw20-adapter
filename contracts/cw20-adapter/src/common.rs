@@ -18,6 +18,6 @@ pub fn get_cw20_address_from_denom(denom: &str) -> Option<&str> {
     Some(cw20addr.as_str())
 }
 
-pub fn get_denom(master_address: &Addr, vault_address: &Addr) -> String {
-    format!("factory/{}/{}", master_address, vault_address)
+pub fn get_denom(adapterr_address: &Addr, cw20addr: &Addr) -> String {
+    format!("factory/{}/{}", adapterr_address, cw20addr)
 }

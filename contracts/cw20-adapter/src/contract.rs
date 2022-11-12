@@ -1,7 +1,7 @@
 use cosmwasm_std::{
     Binary, Deps, DepsMut, entry_point, Env, MessageInfo, Response, StdResult, to_binary, Empty,
 };
-use injective_cosmwasm::InjectiveMsgWrapper;
+use injective_cosmwasm::{InjectiveMsgWrapper, InjectiveQueryWrapper};
 
 use crate::{error::ContractError, execute, query};
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
@@ -11,7 +11,7 @@ pub const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[entry_point]
 pub fn instantiate(
-    deps: DepsMut,
+    deps: DepsMut<InjectiveQueryWrapper>,
     _env: Env,
     _info: MessageInfo,
     _msg: InstantiateMsg,
@@ -22,20 +22,20 @@ pub fn instantiate(
 
 #[entry_point]
 pub fn execute(
-    deps: DepsMut,
+    deps: DepsMut<InjectiveQueryWrapper>,
     env: Env,
     info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response<InjectiveMsgWrapper>, ContractError> {
     match msg {
-        ExecuteMsg::RegisterCw20Contract { addr } => execute::register(deps, &env, &addr),
-        ExecuteMsg::Receive { sender, amount, msg } => execute::on_received_cw20_funds(deps, env, info, sender, amount, msg),
-        ExecuteMsg::Redeem { recipient } => execute::redeem(deps, env, info, recipient),
+        ExecuteMsg::RegisterCw20Contract { addr } => execute::handle_register_msg(deps, info, &env, &addr),
+        ExecuteMsg::Receive { sender, amount, msg } => execute::handle_on_received_cw20_funds_msg(deps, env, info, sender, amount),
+        ExecuteMsg::Redeem { recipient } => execute::handle_redeem_msg(deps, env, info, recipient),
     }
 }
 
 #[entry_point]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps<InjectiveQueryWrapper>, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::RegisteredContracts {} => to_binary(&query::registered_contracts(deps)?),
         QueryMsg::NewDenomFee {} => to_binary(&query::new_denom_fee(deps)?),
