@@ -38,6 +38,6 @@ overflow-checks = true
 rpath = false
 
 [patch.crates-io]
-injective-cosmwasm = { git = "https://github.com/InjectiveLabs/cw-injective.git", branch ="f/token_factory_create_fee_query" }
+injective-cosmwasm = { path = "../cw-injective/packages/injective-cosmwasm"}
+#injective-cosmwasm = { git = "https://github.com/InjectiveLabs/cw-injective.git", branch ="f/token_factory_create_fee_query" }
 #cw20-base = { path = "../cw-plus-inj/contracts/cw20-base" }
-#injective-cosmwasm = { path = "../cw-injective/packages/injective-cosmwasm"}

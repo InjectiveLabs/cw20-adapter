@@ -28,8 +28,8 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response<InjectiveMsgWrapper>, ContractError> {
     match msg {
-        ExecuteMsg::RegisterCw20Contract { addr } => execute::handle_register_msg(deps, info, &env, &addr),
-        ExecuteMsg::Receive { sender, amount, msg } => execute::handle_on_received_cw20_funds_msg(deps, env, info, sender, amount),
+        ExecuteMsg::RegisterCw20Contract { addr } => execute::handle_register_msg(deps, env, info, addr),
+        ExecuteMsg::Receive { sender, amount, msg: _ } => execute::handle_on_received_cw20_funds_msg(deps, env, info, sender, amount),
         ExecuteMsg::Redeem { recipient } => execute::handle_redeem_msg(deps, env, info, recipient),
     }
 }
