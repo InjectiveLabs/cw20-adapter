@@ -80,7 +80,7 @@ pub fn handle_redeem_msg(
 
     // let transfer_msg = Cw20ExecuteMsg::Transfer{ recipient, amount: tokens_to_exchange.amount };
     let cw20_transfer_message = WasmMsg::Execute {
-        contract_addr: tokens_to_exchange.denom.clone(),
+        contract_addr: cw20_addr.to_string(),
         msg: to_binary(&Cw20ExecuteMsg::Transfer {
             recipient,
             amount: tokens_to_exchange.amount,

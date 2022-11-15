@@ -1,88 +1,102 @@
-// #[cfg(test)]
-// mod tests {
-//     use cosmwasm_std::{Addr, Uint128, to_binary};
-//     use cw20::Cw20ExecuteMsg;
-//     use cw_multi_test::Executor;
-//     use crate::test_utils::{mock_injective_chain_app, upload_cw20_adapter_contract, upload_cw20_contract};
-//
-//     pub const CONTRACT_OWNER: &str = "inj1gfawuv6fslzjlfa4v7exv27mk6rpfeyv823eu2";
-//
-//     #[test]
-//     fn it_mints_tf_tokens() {
-//         let owner = Addr::unchecked(CONTRACT_OWNER);
-//         let mut injective_app = mock_injective_chain_app();
-//         let cw20_adapter_contract_address = upload_cw20_adapter_contract(&mut injective_app, &owner);
-//
-//         println!(
-//             "Adapter address: {:?}",
-//             cw20_adapter_contract_address
-//         );
-//
-//         let cw20_address = upload_cw20_contract(&mut injective_app, &owner);
-//         println!(
-//             "cw20 address: {:?}",
-//             cw20_address
-//         );
-//
-//         let mint_msg = Cw20ExecuteMsg::Mint{
-//             recipient: owner.clone().to_string(),
-//             amount: Uint128::new(1000),
-//         };
-//
-//         let mint_resp = injective_app.execute_contract(owner.clone(), cw20_address.clone(), &mint_msg, &[]).expect("minting of Mieteks failed");
-//         println!("mint response: {:?}", mint_resp);
-//
-//         let bin = to_binary(&"").unwrap();
-//
-//         let send_msg = Cw20ExecuteMsg::Send { contract: cw20_adapter_contract_address.into_string(), amount: Uint128::new(10), msg: bin };
-//
-//         let send_resp = injective_app.execute_contract(owner, cw20_address, &send_msg, &[]);
-//                 println!("send response: {:?}", send_resp);
-//
-//
-//     }
-// }
+#[cfg(test)]
+mod tests {
+    use cosmwasm_std::{Addr, Coin, from_binary, to_binary, Uint128};
+    use cosmwasm_std::testing::{ mock_info};
+    use cw20::Cw20ExecuteMsg;
+    use injective_cosmwasm::{ create_simple_bank_query_handler, create_spot_market_handler, MarketId, mock_dependencies, WasmMockQuerier};
+    use cw20_adapter::common::get_denom;
 
-// mod test_utils {
-//     use cosmwasm_std::{testing::MockApi, Addr, Api, Empty, MemoryStorage, StdError, Storage};
-//     use cw20_adapter::contract::{execute, instantiate, query};
-//     use cw20_adapter::error::ContractError;
-//     use cw20_adapter::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
-//     use cw20_base::state::MinterData;
-//     use cw_multi_test::{
-//         custom_handler::CachingCustomHandler, BankKeeper, BasicAppBuilder, Contract,
-//         ContractWrapper, DistributionKeeper, Executor, Router, StakeKeeper, WasmKeeper,
-//     };
-//     use cw20_base::msg::InstantiateMsg as Cw20InstantiateMsg;
-//     use cw20_base::msg::ExecuteMsg as Cw20ExecuteMsg;
-//     use cw20_base::msg::QueryMsg as Cw20QueryMsg;
-//
-//     use cw20_base::contract::execute as Cw20ExecuteFn;
-//     use cw20_base::contract::query as Cw20QueryFn;
-//     use cw20_base::contract::instantiate as Cw20InstantiateFn;
-//
-//     use cw20_base::ContractError as Cw20ContractError;
-//
-//     use cw_multi_test::{wasm::AddressGenerator, App};
-//     use injective_cosmwasm::{
-//         addr_to_bech32, InjectiveMsgWrapper, InjectiveQueryWrapper, MarketId,
-//     };
-//     use std::{fmt::Write, str::FromStr};
-//     use std::u8;
-//
-//     use rand::OsRng;
-//     use secp256k1::Secp256k1;
-//
-//     const ADDRESS_LENGTH: usize = 40;
-//     const ADDRESS_BYTES: usize = ADDRESS_LENGTH / 2;
-//     const KECCAK_OUTPUT_BYTES: usize = 32;
-//     const ADDRESS_BYTE_INDEX: usize = KECCAK_OUTPUT_BYTES - ADDRESS_BYTES;
-//
-//     pub const DERIV_MARKET_ID: &str =
-//         "0x427aee334987c52fa7b567b2662bdbb68614e48c000000000000000000000000";
-//     pub const SPOT_MARKET_ID: &str =
-//         "0x01edfab47f124748dc89998eb33144af734484ba07099014594321729a0ca16b";
-//
+    use cw20_adapter::contract::{execute, instantiate};
+    use cw20_adapter::msg::{ExecuteMsg, InstantiateMsg};
+    use crate::test_utils::mock_env;
+
+    pub const ADAPTER_CONTRACT: &str = "inj1zwv6feuzhy6a9wekh96cd57lsarmqlwxvdl4nk";
+    pub const CW20_CONTRACT: &str = "inj1h0y3hssxf4vsdacfmjg720642cvpxwyqh35kpn";
+    pub const ADMIN: &str = "inj1qg5ega6dykkxc307y25pecuufrjkxkag6xhp6y";
+    pub const USER: &str = "inj1gfawuv6fslzjlfa4v7exv27mk6rpfeyv823eu2";
+
+    #[test]
+    fn it_mints_tf_tokens() {
+        let admin = Addr::unchecked(ADMIN);
+
+        let mut deps = mock_dependencies();
+        let mut wasm_querier = WasmMockQuerier::new();
+        wasm_querier.bank_query_handler = create_simple_bank_query_handler(vec![Coin::new(10, "inj")]);
+        // wasm_querier.spot_market_response_handler = create_spot_market_handler(get_market(MarketId::unchecked("normal")));
+        // wasm_querier.smart_query_handler = create_smart_query_handler();
+        deps.querier = wasm_querier;
+
+        let msg = InstantiateMsg {};
+
+        let info_inst = mock_info(ADMIN, &[]);
+        // we can just call .unwrap() to assert this was a success
+        let res_inst = instantiate(deps.as_mut(), mock_env(ADAPTER_CONTRACT), info_inst, msg).unwrap();
+
+        // send some tokens to a contract
+        let info_receive = mock_info(CW20_CONTRACT, &[]);
+        let msg = ExecuteMsg::Receive {
+            sender: USER.to_string(),
+            amount: Uint128::new(1000),
+            msg: Default::default(),
+        };
+        let res_receive = execute(deps.as_mut(), mock_env(ADAPTER_CONTRACT), info_receive, msg).unwrap();
+
+        let denom = get_denom(&Addr::unchecked(ADAPTER_CONTRACT), &Addr::unchecked(CW20_CONTRACT));
+        // redeem some tokens to a contract
+        let info_redeem = mock_info(ADAPTER_CONTRACT, &[Coin::new(800, denom)]);
+        let msg = ExecuteMsg::Redeem {
+            recipient: USER.to_string(),
+        };
+        let res_redeem = execute(deps.as_mut(), mock_env(ADAPTER_CONTRACT), info_redeem, msg);
+
+        assert!(res_redeem.is_ok())
+        // // it worked, let's query the state
+        // let res = query(deps.as_ref(), mock_env(), QueryMsg::Config {}).unwrap();
+        // let config: ConfigResponse = from_binary(&res).unwrap();
+        //
+        // assert_eq!(
+        //     ConfigResponse {
+        //         owner: "owner".to_string(),
+        //         ninja_token: "reward".to_string(),
+        //         distribution_contract: "distribution".to_string(),
+        //     },
+        //     config
+        // );
+        // let mint_msg = Cw20ExecuteMsg::Mint {
+        //     recipient: owner.clone().to_string(),
+        //     amount: Uint128::new(1000),
+        // };
+
+        // let mint_resp = injective_app.execute_contract(owner.clone(), cw20_address.clone(), &mint_msg, &[]).expect("minting of Mieteks failed");
+        // println!("mint response: {:?}", mint_resp);
+        //
+        // let bin = to_binary(&"").unwrap();
+        //
+        // let send_msg = Cw20ExecuteMsg::Send { contract: cw20_adapter_contract_address.into_string(), amount: Uint128::new(10), msg: bin };
+        //
+        // let send_resp = injective_app.execute_contract(owner, cw20_address, &send_msg, &[]);
+        // println!("send response: {:?}", send_resp);
+    }
+}
+
+mod test_utils {
+    use cosmwasm_std::{Addr, BlockInfo, ContractInfo, Env, Timestamp, TransactionInfo};
+    use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
+
+    pub fn mock_env(addr: &str) -> Env {
+        Env {
+            block: BlockInfo {
+                height: 12_345,
+                time: Timestamp::from_nanos(1_571_797_419_879_305_533),
+                chain_id: "inj-testnet-14002".to_string(),
+            },
+            transaction: Some(TransactionInfo { index: 3 }),
+            contract: ContractInfo {
+                address: Addr::unchecked(addr),
+            },
+        }
+    }
+
 //     type AdapterContractWrapper = ContractWrapper<
 //         ExecuteMsg, // execute_fn
 //         InstantiateMsg, // instantiate_fn
@@ -283,4 +297,4 @@
 //
 //     //     Addr::unchecked(ninja_address)
 //     // }
-// }
+}

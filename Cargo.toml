@@ -22,7 +22,6 @@ thiserror = "1.0"
 cw-item-set = "0.6.0"
 regex = "1.7.0"
 injective-cosmwasm = "0.1.70"
-cw-multi-test = "0.16.1"
 anyhow = "1.0.66"
 secp256k1 = "0.6.2"
 rand = "0.4.6"
@@ -39,8 +38,6 @@ overflow-checks = true
 rpath = false
 
 [patch.crates-io]
-cw-multi-test = { git = "https://github.com/Tofel/cw-multi-test.git", branch ="feat/custom_address_generator" }
 injective-cosmwasm = { git = "https://github.com/InjectiveLabs/cw-injective.git", branch ="f/token_factory_create_fee_query" }
 #cw20-base = { path = "../cw-plus-inj/contracts/cw20-base" }
-#injective-cosmwasm = { path = "../cw-injective/packages/injective-cosmwasm"}
 #injective-cosmwasm = { path = "../cw-injective/packages/injective-cosmwasm"}

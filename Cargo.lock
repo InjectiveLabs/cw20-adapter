@@ -97,9 +97,9 @@ dependencies = [
 
 [[package]]
 name = "const-oid"
-version = "0.9.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "722e23542a15cea1f65d4a1419c4cfd7a26706c70871a13a04238ca3f40f1661"
+checksum = "cec318a675afcb6a1ea1d4340e2d377e56e47c266f28043ceccbf4412ddfdd3b"
 
 [[package]]
 name = "cosmwasm-crypto"
@@ -561,7 +561,7 @@ dependencies = [
 [[package]]
 name = "injective-cosmwasm"
 version = "0.1.70"
-source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/token_factory_create_fee_query#4b63568069e7ef4e28e8b15062afe5b47d305dc9"
+source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/token_factory_create_fee_query#5ba2d4759e95ed5053d0fdd47326d22a15f547e3"
 dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 0.15.1",
@@ -576,7 +576,7 @@ dependencies = [
 [[package]]
 name = "injective-math"
 version = "0.1.9"
-source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/token_factory_create_fee_query#4b63568069e7ef4e28e8b15062afe5b47d305dc9"
+source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/token_factory_create_fee_query#5ba2d4759e95ed5053d0fdd47326d22a15f547e3"
 dependencies = [
  "bigint",
  "cosmwasm-std",
@@ -1040,8 +1040,3 @@ name = "zeroize"
 version = "1.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c394b5bd0c6f669e7275d9c20aa90ae064cb22e75a1cad54e1b34088034b149f"
-
-[[patch.unused]]
-name = "cw-multi-test"
-version = "0.16.1"
-source = "git+https://github.com/Tofel/cw-multi-test.git?branch=feat/custom_address_generator#b301d11f7c9095e18c7ef09e04b42760a49a40b8"

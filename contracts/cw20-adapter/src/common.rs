@@ -6,9 +6,9 @@ use regex::{Captures, Regex};
 
 // static TOKEN_FACTORY_EXPR: Regex = Regex::new("factory/([A-Za-z0-9]{44})/([A-Za-z0-9]{44})").unwrap();
 
-fn parser() -> Regex { Regex::new("factory/([A-Za-z0-9]{44})/([A-Za-z0-9]{44})").unwrap() }
-
+fn parser() -> Regex { Regex::new(r"factory/(\w{42})/(\w{42})").unwrap() }
 pub fn is_token_factory_denom(denom: &str) -> bool {
+
     parser().is_match(denom)
 }
 
