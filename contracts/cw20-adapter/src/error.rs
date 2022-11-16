@@ -13,6 +13,4 @@ pub enum ContractError {
 
     #[error("Adapter is missing balance to create a new token-factory denom")]
     NotEnoughBalanceToPayDenomCreationFee,
-
-
 }

@@ -6,3 +6,6 @@ artifacts/
 
 # macOS
 .DS_Store
+
+.idea/
+.vscode/

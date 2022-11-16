@@ -1,14 +1,15 @@
 use cosmwasm_std::Addr;
-use regex::{Regex};
+use regex::Regex;
 
 // TODO: replace with extension
 // TODO: optimise so it's compiled once. Or replace with ordinary split
 
 // static TOKEN_FACTORY_EXPR: Regex = Regex::new("factory/([A-Za-z0-9]{44})/([A-Za-z0-9]{44})").unwrap();
 
-fn parser() -> Regex { Regex::new(r"factory/(\w{42})/(\w{42})").unwrap() }
+fn parser() -> Regex {
+    Regex::new(r"factory/(\w{42})/(\w{42})").unwrap()
+}
 pub fn is_token_factory_denom(denom: &str) -> bool {
-
     parser().is_match(denom)
 }
 
@@ -29,7 +30,7 @@ mod tests {
 
     #[test]
     fn it_returns_true_on_correct_token_factory_denom() {
-        assert!(!is_token_factory_denom("factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h"), "input was not treated as token factory denom")
+        assert!(is_token_factory_denom("factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h"), "input was not treated as token factory denom")
     }
 
     #[test]

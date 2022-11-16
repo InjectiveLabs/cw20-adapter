@@ -560,7 +560,9 @@ dependencies = [
 
 [[package]]
 name = "injective-cosmwasm"
-version = "0.1.70"
+version = "0.1.72"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e9c06e58a0e6a895e72e9712be1f91498d08f88d8171f86d72aafa731a9848f"
 dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 0.15.1",
@@ -575,6 +577,8 @@ dependencies = [
 [[package]]
 name = "injective-math"
 version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c8ad122ba8d2dd908fed130edd6b1237788be59bff81c9d2cf3a2423b9f139a"
 dependencies = [
  "bigint",
  "cosmwasm-std",
