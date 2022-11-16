@@ -28,7 +28,8 @@ pub fn execute(
     match msg {
         ExecuteMsg::RegisterCw20Contract { addr } => execute::handle_register_msg(deps, env, info, addr),
         ExecuteMsg::Receive { sender, amount, msg: _ } => execute::handle_on_received_cw20_funds_msg(deps, env, info, sender, amount),
-        ExecuteMsg::Redeem { recipient } => execute::handle_redeem_msg(deps, env, info, recipient),
+        ExecuteMsg::RedeemAndTransfer { recipient } => execute::handle_redeem_msg(deps, env, info, recipient, None),
+        ExecuteMsg::RedeemAndSend { recipient, submsg } => execute::handle_redeem_msg(deps, env, info, Some(recipient), submsg),
     }
 }
 

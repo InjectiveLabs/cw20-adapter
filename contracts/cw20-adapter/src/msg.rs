@@ -15,8 +15,10 @@ pub enum ExecuteMsg {
     RegisterCw20Contract { addr: Addr },
     ///  Impl of Receiver CW-20 interface. Should be called by CW-20 contract only!! (never directly). Msg is ignored
     Receive { sender: String, amount: Uint128, msg: Binary },
-    /// Called to redeem TF tokens. Will send CW-20 tokens to "recipient" address
-    Redeem { recipient: Option<String> },
+    /// Called to redeem TF tokens. Will send CW-20 tokens to "recipient" address (or sender if not provided). Will use transfer method
+    RedeemAndTransfer { recipient: Option<String> },
+    /// Called to redeem TF tokens. Will call Send method of CW:20 to send CW-20 tokens to "recipient" address. Has optional submessage to be passed
+    RedeemAndSend { recipient: String, submsg: Option<Binary> },
 }
 
 #[cw_serde]

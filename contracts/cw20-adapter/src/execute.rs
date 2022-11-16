@@ -1,4 +1,4 @@
-use cosmwasm_std::{Addr, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, to_binary, Uint128, WasmMsg};
+use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, to_binary, Uint128, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use injective_cosmwasm::{create_burn_tokens_msg, create_mint_tokens_msg, create_new_denom_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
 
@@ -66,7 +66,10 @@ pub fn handle_redeem_msg(
     env: Env,
     info: MessageInfo,
     recipient: Option<String>,
+    submessage: Option<Binary>,
 ) -> Result<Response<InjectiveMsgWrapper>, ContractError> {
+    let recipient = recipient.unwrap_or_else(|| info.sender.to_string());
+
     if info.funds.len() > 1 {
         return Err(ContractError::SuperfluousFundsProvided);
     }
@@ -88,18 +91,29 @@ pub fn handle_redeem_msg(
     if !contract_registered {
         return Err(ContractError::NoRegisteredTokensProvided);
     }
-    let recipient = recipient.unwrap_or_else(|| info.sender.to_string());
 
-    let cw20_transfer_message = WasmMsg::Execute {
-        contract_addr: cw20_addr,
-        msg: to_binary(&Cw20ExecuteMsg::Transfer {
-            recipient,
-            amount: tokens_to_exchange.amount,
-        })?,
-        funds: vec![],
+    let burn_tf_tokens_message = create_burn_tokens_msg(env.contract.address, tokens_to_exchange.clone());
+
+    let cw20_message: WasmMsg = match submessage {
+        None => WasmMsg::Execute {
+            contract_addr: cw20_addr,
+            msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                recipient,
+                amount: tokens_to_exchange.amount,
+            })?,
+            funds: vec![],
+        },
+        Some(msg) => WasmMsg::Execute {
+            contract_addr: cw20_addr.clone(),
+            msg: to_binary(&Cw20ExecuteMsg::Send {
+                contract: cw20_addr,
+                amount: tokens_to_exchange.amount,
+                msg: msg,
+            })?,
+            funds: vec![],
+        }
     };
-    let burn_tf_tokens_message = create_burn_tokens_msg(env.contract.address, tokens_to_exchange);
-    Ok(Response::new().add_message(cw20_transfer_message).add_message(burn_tf_tokens_message))
+    Ok(Response::new().add_message(cw20_message).add_message(burn_tf_tokens_message))
 }
 
 fn is_contract_registered(deps: &DepsMut<InjectiveQueryWrapper>, addr: &Addr) -> bool {
@@ -456,7 +470,6 @@ mod tests {
 
         let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(!contract_registered, "contract was registered");
-
         assert_eq!(response, ContractError::SuperfluousFundsProvided, "funds were provided");
     }
 
@@ -473,6 +486,7 @@ mod tests {
             env,
             mock_info(CW_20_ADDRESS, &[coins_to_burn.clone()]),
             Some(SENDER.to_string()),
+            None,
         )
             .unwrap();
 
@@ -527,6 +541,7 @@ mod tests {
             env,
             mock_info(CW_20_ADDRESS, &[Coin::new(10, "usdt")]),
             Some(SENDER.to_string()),
+            None,
         )
             .unwrap_err();
         assert_eq!(response, ContractError::NoRegisteredTokensProvided, "incorrect error returned")
@@ -538,7 +553,7 @@ mod tests {
         let mut env = mock_env();
         env.contract.address = Addr::unchecked(CONTRACT_ADDRESS);
 
-        let response = handle_redeem_msg(deps.as_mut(), env, mock_info(CW_20_ADDRESS, &[]), Some(SENDER.to_string())).unwrap_err();
+        let response = handle_redeem_msg(deps.as_mut(), env, mock_info(CW_20_ADDRESS, &[]), Some(SENDER.to_string()), None).unwrap_err();
         assert_eq!(response, ContractError::NoRegisteredTokensProvided, "incorrect error returned")
     }
 
@@ -553,6 +568,7 @@ mod tests {
             env,
             mock_info(CW_20_ADDRESS, &[Coin::new(10, format!("factory/{}/{}", CONTRACT_ADDRESS, CW_20_ADDRESS))]),
             Some(SENDER.to_string()),
+            None,
         )
             .unwrap_err();
         assert_eq!(response, ContractError::NoRegisteredTokensProvided, "incorrect error returned")

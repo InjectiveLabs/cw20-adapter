@@ -39,7 +39,7 @@ mod tests {
         let denom = get_denom(&Addr::unchecked(ADAPTER_CONTRACT), &Addr::unchecked(CW20_CONTRACT));
         // redeem some tokens to a contract
         let info_redeem = mock_info(USER, &[Coin::new(800, denom)]);
-        let msg = ExecuteMsg::Redeem { recipient: None };
+        let msg = ExecuteMsg::RedeemAndTransfer { recipient: None };
         let res_redeem = execute(deps.as_mut(), mock_env(ADAPTER_CONTRACT), info_redeem, msg);
 
         assert!(res_redeem.is_ok());

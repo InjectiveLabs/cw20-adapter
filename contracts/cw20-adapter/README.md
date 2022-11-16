@@ -21,12 +21,18 @@ Upon receiving this message, adapter will:
 - check if calling address is registered - if not and contract address has enough funds, it will register it (see above). 
 - will mint and transfer to a `sender` address (original caller of cw20 send method) `amount` of TF tokens 
 
-### Redeem { recipient: Option<String> }
+### RedeemAndTransfer { recipient: Option<String> }
 Will redeem attached TF tokens (will fail if no registered tokens are provided)
 and will transfer CW-20 tokens to `recipient`. If recipient is not provided, they will be sent 
 to the message caller. 
 
 This method uses CW-20 `transfer` method (so it will not notify recipient in any way)
+
+### RedeemAndSend { recipient: String, submessage: Binary }
+Will redeem attached TF tokens (will fail if no registered tokens are provided)
+and will send CW-20 tokens to `recipient` contract. Caller may provide optional submessage 
+
+This method uses CW-20 `send` method
 
 
 # Queries 
