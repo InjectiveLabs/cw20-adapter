@@ -75,7 +75,7 @@ pub fn handle_redeem_msg(
                 None
             }
         })
-        .ok_or_else(|| ContractError::NoRegisteredTokensProvided)?;
+        .ok_or(ContractError::NoRegisteredTokensProvided)?;
 
     let cw20_addr = get_cw20_address_from_denom(&tokens_to_exchange.denom)
         .ok_or(ContractError::NoRegisteredTokensProvided)?;
@@ -97,7 +97,7 @@ pub fn handle_redeem_msg(
 }
 
 fn contract_registered(deps: &DepsMut<InjectiveQueryWrapper>, addr: &Addr) -> bool {
-    CW20_CONTRACTS.contains(deps.storage, &addr.to_string())
+    CW20_CONTRACTS.contains(deps.storage, addr.as_ref())
 }
 
 fn check_account_create_denom_funds(
@@ -113,7 +113,7 @@ fn check_account_create_denom_funds(
             return Err(ContractError::NotEnoughBalanceToPayDenomCreationFee);
         }
     }
-    return Ok(());
+    Ok(())
 }
 
 fn register_contract_and_get_message(
@@ -126,7 +126,7 @@ fn register_contract_and_get_message(
     let create_denom_message =
         create_new_denom_msg(env.contract.address.to_string(), contract_address);
 
-    return Ok(create_denom_message);
+    Ok(create_denom_message)
 }
 
 #[cfg(test)]
@@ -155,12 +155,12 @@ mod tests {
         let response = handle_register_msg(
             deps.as_mut(),
             env,
-            mock_info(SENDER, &vec![Coin::new(10, "inj")]),
+            mock_info(SENDER, &[Coin::new(10, "inj")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
         .unwrap();
 
-        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(contract_registered, "contract wasn't registered");
 
         assert_eq!(response.messages.len(), 1, "incorrect number of messages returned");
@@ -206,12 +206,12 @@ mod tests {
         let response = handle_register_msg(
             deps.as_mut(),
             env,
-            mock_info(SENDER, &vec![Coin::new(100, "inj"), Coin::new(20, "usdt")]),
+            mock_info(SENDER, &[Coin::new(100, "inj"), Coin::new(20, "usdt")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
         .unwrap();
 
-        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(contract_registered, "contract wasn't registered");
 
         assert_eq!(response.messages.len(), 1, "incorrect number of messages returned");
@@ -256,13 +256,12 @@ mod tests {
         let response = handle_register_msg(
             deps.as_mut(),
             mock_env(),
-            mock_info(SENDER, &vec![Coin::new(10, "inj")]),
-            Addr::unchecked(non_cannonical_address.clone()),
+            mock_info(SENDER, &[Coin::new(10, "inj")]),
+            Addr::unchecked(non_cannonical_address.to_string()),
         )
         .unwrap();
 
-        let contract_registered =
-            CW20_CONTRACTS.contains(&deps.storage, non_cannonical_address.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, non_cannonical_address);
         assert!(contract_registered, "contract wasn't registered");
 
         assert_eq!(response.messages.len(), 1, "incorrect number of messages returned");
@@ -305,7 +304,7 @@ mod tests {
         let mut deps = mock_dependencies();
         let storage = &mut deps.storage;
         let contract_address = Addr::unchecked("amazing_address");
-        CW20_CONTRACTS.insert(storage, &contract_address.as_str()).unwrap();
+        CW20_CONTRACTS.insert(storage, contract_address.as_str()).unwrap();
 
         let response = handle_register_msg(
             deps.as_mut(),
@@ -324,21 +323,22 @@ mod tests {
     #[test]
     fn it_returns_error_if_cannot_query_denom_creation_fee_register_msg() {
         let mut deps = mock_dependencies();
-        let mut querier = WasmMockQuerier::default();
-        querier.token_factory_denom_creation_fee_handler =
-            create_denom_creation_fee_failing_handler();
-        deps.querier = querier;
+        deps.querier = WasmMockQuerier {
+            token_factory_denom_creation_fee_handler: create_denom_creation_fee_failing_handler(),
+            ..Default::default()
+        };
+
         let response = handle_register_msg(
             deps.as_mut(),
             mock_env(),
-            mock_info(SENDER, &vec![Coin::new(10, "inj")]),
+            mock_info(SENDER, &[Coin::new(10, "inj")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
         .unwrap_err();
 
         assert!(response.to_string().contains("custom error"), "incorrect error returned");
 
-        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(!contract_registered, "contract was registered");
     }
 
@@ -348,7 +348,7 @@ mod tests {
         let response = handle_register_msg(
             deps.as_mut(),
             mock_env(),
-            mock_info(SENDER, &vec![Coin::new(10, "usdt")]),
+            mock_info(SENDER, &[Coin::new(10, "usdt")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
         .unwrap_err();
@@ -359,7 +359,7 @@ mod tests {
             "incorrect error returned"
         );
 
-        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(!contract_registered, "contract was registered");
     }
 
@@ -369,7 +369,7 @@ mod tests {
         let response = handle_register_msg(
             deps.as_mut(),
             mock_env(),
-            mock_info(SENDER, &vec![Coin::new(9, "inj")]),
+            mock_info(SENDER, &[Coin::new(9, "inj")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
         .unwrap_err();
@@ -380,7 +380,7 @@ mod tests {
             "incorrect error returned"
         );
 
-        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(!contract_registered, "contract was registered");
     }
 
@@ -390,7 +390,7 @@ mod tests {
         let response = handle_register_msg(
             deps.as_mut(),
             mock_env(),
-            mock_info(SENDER, &vec![]),
+            mock_info(SENDER, &[]),
             Addr::unchecked(CW_20_ADDRESS),
         )
         .unwrap_err();
@@ -401,7 +401,7 @@ mod tests {
             "incorrect error returned"
         );
 
-        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(!contract_registered, "contract was registered");
     }
 
@@ -424,7 +424,7 @@ mod tests {
         )
         .unwrap();
 
-        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(contract_registered, "contract wasn't registered");
 
         assert_eq!(response.messages.len(), 2, "incorrect number of messages returned");
@@ -517,7 +517,7 @@ mod tests {
         )
         .unwrap();
 
-        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(contract_registered, "contract wasn't registered");
 
         assert_eq!(response.messages.len(), 1, "incorrect number of messages returned");
@@ -578,7 +578,7 @@ mod tests {
         )
         .unwrap_err();
 
-        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS.clone());
+        let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(!contract_registered, "contract was registered");
 
         assert_eq!(
@@ -746,7 +746,7 @@ mod tests {
             fn handle(&self, _: String, _: String) -> QuerierResult {
                 let response = BalanceResponse {
                     amount: Coin {
-                        denom: self.balance.denom.as_str().clone().to_string(),
+                        denom: self.balance.denom.clone(),
                         amount: self.balance.amount,
                     },
                 };
