@@ -1,5 +1,6 @@
 use cosmwasm_std::{Coin, Deps, Order, StdResult};
-use injective_cosmwasm::{InjectiveQuerier, InjectiveQueryWrapper};
+use injective_cosmwasm::InjectiveQueryWrapper;
+use crate::common::query_denom_creation_fee;
 
 use crate::state::CW20_CONTRACTS;
 
@@ -12,6 +13,5 @@ pub fn registered_contracts(deps: Deps<InjectiveQueryWrapper>) -> StdResult<Vec<
 }
 
 pub fn new_denom_fee(deps: Deps<InjectiveQueryWrapper>) -> StdResult<Vec<Coin>> {
-    let querier = InjectiveQuerier::new(&deps.querier);
-    Ok(querier.query_token_factory_creation_fee()?.fee)
+    query_denom_creation_fee(&deps.querier)
 }

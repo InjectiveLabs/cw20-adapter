@@ -30,6 +30,7 @@ thiserror = { workspace = true }
 cw-item-set = { workspace = true }
 regex = { workspace = true }
 injective-cosmwasm = { workspace = true }
+serde = { workspace = true }
 
 #[dev-dependencies]
 #cosmwasm-schema = { workspace = true }

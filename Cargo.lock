@@ -297,7 +297,7 @@ dependencies = [
 
 [[package]]
 name = "cw20-adapter"
-version = "0.0.0"
+version = "1.0.0"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -307,6 +307,7 @@ dependencies = [
  "cw20",
  "injective-cosmwasm",
  "regex",
+ "serde",
  "thiserror",
 ]
 

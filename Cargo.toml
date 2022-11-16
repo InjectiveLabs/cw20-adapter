@@ -2,14 +2,14 @@
 members = ["contracts/*"]
 
 [workspace.package]
-version = "0.0.0"
-authors = ["Larry Engineer <gm@larry.engineer>"]
+version = "1.0.0"
+authors = ["Antoni Mysliborski <gm@larry.engineer>"]
 edition = "2021"
 license = "AGPL-v3-or-later"
-homepage = "https://larry.engineer"
-repository = "https://github.com/steak-enjoyers/cw-template"
-documentation = "https://github.com/steak-enjoyers/cw-template#readme"
-keywords = ["blockchain", "cosmos", "cosmwasm"]
+homepage = "https://injectivelabs.org"
+repository = "https://github.com/InjectiveLabs/cw20-adapter"
+documentation = "https://github.com/InjectiveLabs/cw20-adapter#readme"
+keywords = ["blockchain", "cosmos", "cosmwasm", "injective"]
 rust-version = "1.64.0"
 
 [workspace.dependencies]
@@ -26,6 +26,7 @@ anyhow = "1.0.66"
 secp256k1 = "0.6.2"
 rand = "0.4.6"
 tiny-keccak = "1.2.1"
+serde = "1.0.147"
 
 [profile.release]
 codegen-units = 1
