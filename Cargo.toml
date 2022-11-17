@@ -21,7 +21,7 @@ cw-storage-plus = "0.16"
 thiserror = "1.0"
 cw-item-set = "0.6.0"
 regex = "1.7.0"
-injective-cosmwasm = "0.1.72"
+injective-cosmwasm = "0.1.73"
 anyhow = "1.0.66"
 secp256k1 = "0.6.2"
 rand = "0.4.6"
@@ -40,5 +40,5 @@ rpath = false
 
 [patch.crates-io]
 #injective-cosmwasm = { path = "../cw-injective/packages/injective-cosmwasm"}
-#injective-cosmwasm = { git = "https://github.com/InjectiveLabs/cw-injective.git", branch ="f/token_factory_create_fee_query" }
+injective-cosmwasm = { git = "https://github.com/InjectiveLabs/cw-injective.git", branch ="f/bank_queries" }
 #cw20-base = { path = "../cw-plus-inj/contracts/cw20-base" }

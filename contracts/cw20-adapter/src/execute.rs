@@ -1,6 +1,7 @@
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, to_binary, Uint128, WasmMsg};
-use cw20::Cw20ExecuteMsg;
+use cosmwasm_std::{to_binary, Addr, Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, WasmMsg};
+use cw20::{Cw20ExecuteMsg, Cw20QueryMsg};
 use injective_cosmwasm::{create_burn_tokens_msg, create_mint_tokens_msg, create_new_denom_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
+use std::cmp::Ordering;
 
 use crate::common::{denom_parser, get_cw20_address_from_denom, get_denom, query_denom_creation_fee};
 use crate::error::ContractError;
@@ -25,10 +26,11 @@ pub fn handle_register_msg(
         let pf = provided_funds
             .find(|c| -> bool { c.denom == required_coin.denom })
             .ok_or(ContractError::NotEnoughBalanceToPayDenomCreationFee)?;
-        if pf.amount < required_coin.amount {
-            return Err(ContractError::NotEnoughBalanceToPayDenomCreationFee);
-        } else if pf.amount > required_coin.amount {
-            return Err(ContractError::SuperfluousFundsProvided);
+
+        match pf.amount.cmp(&required_coin.amount) {
+            Ordering::Greater => return Err(ContractError::SuperfluousFundsProvided),
+            Ordering::Less => return Err(ContractError::NotEnoughBalanceToPayDenomCreationFee),
+            Ordering::Equal => {}
         }
     }
 
@@ -108,10 +110,10 @@ pub fn handle_redeem_msg(
             msg: to_binary(&Cw20ExecuteMsg::Send {
                 contract: cw20_addr,
                 amount: tokens_to_exchange.amount,
-                msg: msg,
+                msg,
             })?,
             funds: vec![],
-        }
+        },
     };
     Ok(Response::new().add_message(cw20_message).add_message(burn_tf_tokens_message))
 }
@@ -138,27 +140,35 @@ fn register_contract_and_get_message(
     addr: &Addr,
 ) -> Result<CosmosMsg<InjectiveMsgWrapper>, ContractError> {
     let contract_address = addr.to_string();
+    ensure_address_is_cw20(&deps, &contract_address)?;
     CW20_CONTRACTS.insert(deps.storage, &contract_address)?;
     let create_denom_message = create_new_denom_msg(env.contract.address.to_string(), contract_address);
 
     Ok(create_denom_message)
 }
 
+fn ensure_address_is_cw20(deps: &DepsMut<InjectiveQueryWrapper>, addr: &str) -> StdResult<()> {
+    let msg = Cw20QueryMsg::TokenInfo {};
+    let _res: StdResult<Binary> = deps.querier.query_wasm_smart(addr, &msg);
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{
-        Addr,
-        BalanceResponse,
-        Coin, ContractResult, CosmosMsg, from_binary, QuerierResult, SubMsg, SystemError, SystemResult, testing::{mock_env, mock_info}, to_binary, Uint128, WasmMsg,
+        from_binary,
+        testing::{mock_env, mock_info},
+        to_binary, Addr, BalanceResponse, Coin, ContractResult, CosmosMsg, QuerierResult, SubMsg, SystemError, SystemResult, Uint128, WasmMsg,
     };
     use cw20::Cw20ExecuteMsg;
     use injective_cosmwasm::{
-        HandlesBankBalanceQuery, HandlesFeeQuery, InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies, WasmMockQuerier,
+        create_smart_query_handler, mock_dependencies, HandlesBankBalanceQuery, HandlesFeeQuery, InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute,
+        WasmMockQuerier,
     };
 
-    use {handle_on_received_cw20_funds_msg, handle_redeem_msg, handle_register_msg};
     use ContractError;
     use CW20_CONTRACTS;
+    use {handle_on_received_cw20_funds_msg, handle_redeem_msg, handle_register_msg};
 
     use super::*;
 
@@ -169,6 +179,10 @@ mod tests {
     #[test]
     fn it_handles_correct_register_msg_with_exact_funds() {
         let mut deps = mock_dependencies();
+        let mut wasm_querier = WasmMockQuerier::new();
+        wasm_querier.smart_query_handler = create_smart_query_handler(Ok(to_binary("{}").unwrap()));
+        deps.querier = wasm_querier;
+
         let mut env = mock_env();
         env.contract.address = Addr::unchecked(CONTRACT_ADDRESS);
         let response = handle_register_msg(
@@ -177,7 +191,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(10, "inj")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap();
+        .unwrap();
 
         let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(contract_registered, "contract wasn't registered");
@@ -212,13 +226,17 @@ mod tests {
             mock_info(SENDER, &[Coin::new(100, "inj"), Coin::new(20, "usdt")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap_err();
+        .unwrap_err();
         assert_eq!(response_err, ContractError::SuperfluousFundsProvided);
     }
 
     #[test]
     fn it_handles_correct_register_msg_with_non_cannonical_cw20_address() {
         let mut deps = mock_dependencies();
+        let mut wasm_querier = WasmMockQuerier::new();
+        wasm_querier.smart_query_handler = create_smart_query_handler(Ok(to_binary("{}").unwrap()));
+        deps.querier = wasm_querier;
+
         let non_cannonical_address = "stefan";
         let response = handle_register_msg(
             deps.as_mut(),
@@ -226,7 +244,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(10, "inj")]),
             Addr::unchecked(non_cannonical_address.to_string()),
         )
-            .unwrap();
+        .unwrap();
 
         let contract_registered = CW20_CONTRACTS.contains(&deps.storage, non_cannonical_address);
         assert!(contract_registered, "contract wasn't registered");
@@ -284,7 +302,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(10, "inj")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap_err();
+        .unwrap_err();
 
         assert!(response.to_string().contains("custom error"), "incorrect error returned");
 
@@ -301,7 +319,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(10, "usdt")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap_err();
+        .unwrap_err();
 
         assert_eq!(response, ContractError::NotEnoughBalanceToPayDenomCreationFee, "incorrect error returned");
 
@@ -312,13 +330,14 @@ mod tests {
     #[test]
     fn it_returns_error_if_insufficient_coins_are_passed_register_msg() {
         let mut deps = mock_dependencies();
+
         let response = handle_register_msg(
             deps.as_mut(),
             mock_env(),
             mock_info(SENDER, &[Coin::new(9, "inj")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap_err();
+        .unwrap_err();
 
         assert_eq!(response, ContractError::NotEnoughBalanceToPayDenomCreationFee, "incorrect error returned");
 
@@ -342,6 +361,7 @@ mod tests {
         let mut deps = mock_dependencies();
         deps.querier = WasmMockQuerier {
             balance_query_handler: create_custom_bank_balance_query_handler(Coin::new(10, "inj")),
+            smart_query_handler: create_smart_query_handler(Ok(to_binary("{}").unwrap())),
             ..Default::default()
         };
         let mut env = mock_env();
@@ -465,8 +485,14 @@ mod tests {
         let mut env = mock_env();
         env.contract.address = Addr::unchecked(CONTRACT_ADDRESS);
         let amount_to_send = Uint128::new(100);
-        let response =
-            handle_on_received_cw20_funds_msg(deps.as_mut(), env, mock_info(CW_20_ADDRESS, &[Coin::new(1000, "usdt")]), SENDER.to_string(), amount_to_send).unwrap_err();
+        let response = handle_on_received_cw20_funds_msg(
+            deps.as_mut(),
+            env,
+            mock_info(CW_20_ADDRESS, &[Coin::new(1000, "usdt")]),
+            SENDER.to_string(),
+            amount_to_send,
+        )
+        .unwrap_err();
 
         let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(!contract_registered, "contract was registered");
@@ -476,6 +502,10 @@ mod tests {
     #[test]
     fn it_handles_redeem_correctly() {
         let mut deps = mock_dependencies();
+        let mut wasm_querier = WasmMockQuerier::new();
+        wasm_querier.smart_query_handler = create_smart_query_handler(Ok(to_binary("{}").unwrap()));
+        deps.querier = wasm_querier;
+
         let mut env = mock_env();
         env.contract.address = Addr::unchecked(CONTRACT_ADDRESS);
         CW20_CONTRACTS.insert(&mut deps.storage, CW_20_ADDRESS).unwrap();
@@ -488,7 +518,7 @@ mod tests {
             Some(SENDER.to_string()),
             None,
         )
-            .unwrap();
+        .unwrap();
 
         assert_eq!(response.messages.len(), 2, "incorrect number of messages returned");
 
@@ -543,7 +573,7 @@ mod tests {
             Some(SENDER.to_string()),
             None,
         )
-            .unwrap_err();
+        .unwrap_err();
         assert_eq!(response, ContractError::NoRegisteredTokensProvided, "incorrect error returned")
     }
 
@@ -560,6 +590,10 @@ mod tests {
     #[test]
     fn it_returns_error_if_redeeming_unknown_factory_token() {
         let mut deps = mock_dependencies();
+        let mut wasm_querier = WasmMockQuerier::new();
+        wasm_querier.smart_query_handler = create_smart_query_handler(Ok(to_binary("{}").unwrap()));
+        deps.querier = wasm_querier;
+
         let mut env = mock_env();
         env.contract.address = Addr::unchecked(CONTRACT_ADDRESS);
 
@@ -570,7 +604,7 @@ mod tests {
             Some(SENDER.to_string()),
             None,
         )
-            .unwrap_err();
+        .unwrap_err();
         assert_eq!(response, ContractError::NoRegisteredTokensProvided, "incorrect error returned")
     }
 

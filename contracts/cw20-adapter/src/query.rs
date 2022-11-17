@@ -1,6 +1,6 @@
+use crate::common::query_denom_creation_fee;
 use cosmwasm_std::{Coin, Deps, Order, StdResult};
 use injective_cosmwasm::InjectiveQueryWrapper;
-use crate::common::query_denom_creation_fee;
 
 use crate::state::CW20_CONTRACTS;
 

@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::testing::mock_info;
-    use cosmwasm_std::{Addr, Coin, Uint128};
+    use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
     use cw20_adapter::common::get_denom;
-    use injective_cosmwasm::{create_simple_balance_bank_query_handler, mock_dependencies, WasmMockQuerier};
+    use injective_cosmwasm::{create_simple_balance_bank_query_handler, create_smart_query_handler, mock_dependencies, WasmMockQuerier};
 
     use crate::test_utils::mock_env;
     use cw20_adapter::contract::{execute, instantiate};
@@ -20,6 +20,7 @@ mod tests {
         let mut wasm_querier = WasmMockQuerier::new();
 
         wasm_querier.balance_query_handler = create_simple_balance_bank_query_handler(vec![Coin::new(10, "inj")]);
+        wasm_querier.smart_query_handler = create_smart_query_handler(Ok(to_binary("{}").unwrap()));
         deps.querier = wasm_querier;
 
         let msg = InstantiateMsg {};
