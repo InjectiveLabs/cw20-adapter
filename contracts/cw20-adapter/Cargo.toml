@@ -31,12 +31,3 @@ cw-item-set = { workspace = true }
 regex = { workspace = true }
 injective-cosmwasm = { workspace = true }
 serde = { workspace = true }
-
-#[dev-dependencies]
-#cosmwasm-schema = { workspace = true }
-#cw-multi-test = { workspace = true }
-#anyhow = { workspace = true }
-#secp256k1 = { workspace = true }
-#rand = { workspace = true }
-#tiny-keccak = { workspace = true }
-#cw20-base = { workspace = true }

@@ -17,7 +17,7 @@ pub enum ExecuteMsg {
     Receive { sender: String, amount: Uint128, msg: Binary },
     /// Called to redeem TF tokens. Will send CW-20 tokens to "recipient" address (or sender if not provided). Will use transfer method
     RedeemAndTransfer { recipient: Option<String> },
-    /// Called to redeem TF tokens. Will call Send method of CW:20 to send CW-20 tokens to "recipient" address. Has optional submessage to be passed
+    /// Called to redeem TF tokens. Will call Send method of CW:20 to send CW-20 tokens to "recipient" address. Submessage will be passed to send method (can be empty)
     RedeemAndSend { recipient: String, submsg: Binary },
 }
 

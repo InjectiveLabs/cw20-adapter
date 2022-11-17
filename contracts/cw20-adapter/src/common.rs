@@ -46,9 +46,9 @@ mod tests {
         assert_eq!(
             get_cw20_address_from_denom(
                 &denom_parser(),
-                "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h"
+                "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h",
             )
-            .unwrap(),
+                .unwrap(),
             "inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h",
             "wrong cw20 address returned"
         )
@@ -59,9 +59,9 @@ mod tests {
         assert!(
             get_cw20_address_from_denom(
                 &denom_parser(),
-                "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7"
+                "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7",
             )
-            .is_none(),
+                .is_none(),
             "cw20 address returned"
         )
     }
@@ -76,5 +76,51 @@ mod tests {
             "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h",
             "wrong denom returned"
         )
+    }
+}
+
+pub mod test_utils {
+    use cosmwasm_std::{Addr, Binary, BlockInfo, ContractInfo, ContractResult, Env, QuerierResult, SystemError, SystemResult, Timestamp, to_binary, TransactionInfo, Uint128};
+    use cw20::TokenInfoResponse;
+    use injective_cosmwasm::HandlesSmartQuery;
+
+    pub fn mock_env(addr: &str) -> Env {
+        Env {
+            block: BlockInfo {
+                height: 12_345,
+                time: Timestamp::from_nanos(1_571_797_419_879_305_533),
+                chain_id: "inj-testnet-14002".to_string(),
+            },
+            transaction: Some(TransactionInfo { index: 3 }),
+            contract: ContractInfo {
+                address: Addr::unchecked(addr),
+            },
+        }
+    }
+
+    pub fn create_cw20_info_query_handler() -> Option<Box<dyn HandlesSmartQuery>> {
+        struct A();
+        impl HandlesSmartQuery for A {
+            fn handle(&self, _: &str, _: &Binary) -> QuerierResult {
+                let response = TokenInfoResponse {
+                    name: "lp token".to_string(),
+                    symbol: "LPT".to_string(),
+                    decimals: 6,
+                    total_supply: Uint128::new(1000),
+                };
+                SystemResult::Ok(ContractResult::from(to_binary(&response)))
+            }
+        }
+        Some(Box::new(A()))
+    }
+
+    pub fn create_cw20_failing_info_query_handler() -> Option<Box<dyn HandlesSmartQuery>> {
+        struct A();
+        impl HandlesSmartQuery for A {
+            fn handle(&self, addr: &str, _: &Binary) -> QuerierResult {
+                SystemResult::Err(SystemError::NoSuchContract { addr: addr.to_string() })
+            }
+        }
+        Some(Box::new(A()))
     }
 }

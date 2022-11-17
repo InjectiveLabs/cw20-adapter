@@ -4,8 +4,8 @@ mod tests {
     use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
     use cw20_adapter::common::get_denom;
     use injective_cosmwasm::{create_simple_balance_bank_query_handler, create_smart_query_handler, mock_dependencies, WasmMockQuerier};
+    use cw20_adapter::common::test_utils::{create_cw20_info_query_handler, mock_env};
 
-    use crate::test_utils::mock_env;
     use cw20_adapter::contract::{execute, instantiate};
     use cw20_adapter::msg::{ExecuteMsg, InstantiateMsg};
 
@@ -20,7 +20,7 @@ mod tests {
         let mut wasm_querier = WasmMockQuerier::new();
 
         wasm_querier.balance_query_handler = create_simple_balance_bank_query_handler(vec![Coin::new(10, "inj")]);
-        wasm_querier.smart_query_handler = create_smart_query_handler(Ok(to_binary("{}").unwrap()));
+        wasm_querier.smart_query_handler = create_cw20_info_query_handler();
         deps.querier = wasm_querier;
 
         let msg = InstantiateMsg {};
@@ -44,23 +44,5 @@ mod tests {
         let res_redeem = execute(deps.as_mut(), mock_env(ADAPTER_CONTRACT), info_redeem, msg);
 
         assert!(res_redeem.is_ok());
-    }
-}
-
-mod test_utils {
-    use cosmwasm_std::{Addr, BlockInfo, ContractInfo, Env, Timestamp, TransactionInfo};
-
-    pub fn mock_env(addr: &str) -> Env {
-        Env {
-            block: BlockInfo {
-                height: 12_345,
-                time: Timestamp::from_nanos(1_571_797_419_879_305_533),
-                chain_id: "inj-testnet-14002".to_string(),
-            },
-            transaction: Some(TransactionInfo { index: 3 }),
-            contract: ContractInfo {
-                address: Addr::unchecked(addr),
-            },
-        }
     }
 }
