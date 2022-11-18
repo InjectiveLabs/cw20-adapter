@@ -107,7 +107,7 @@ version = "1.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1fc6d95cc171e56882d3e90689be1b38fecd31a4e6981129fc4973409de18b9"
 dependencies = [
- "digest 0.10.5",
+ "digest 0.10.6",
  "ed25519-zebra",
  "k256",
  "rand_core 0.6.4",
@@ -343,9 +343,9 @@ dependencies = [
 
 [[package]]
 name = "digest"
-version = "0.10.5"
+version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adfbc57365a37acbd2ebf2b64d7e69bb766e2fea813521ed536f5d0520dcf86c"
+checksum = "8168378f4e5023e7218c89c891c0fd8ecdb5e5e4f18cb78f38cf245dd021e76f"
 dependencies = [
  "block-buffer 0.10.3",
  "crypto-common",
@@ -394,7 +394,7 @@ dependencies = [
  "base16ct",
  "crypto-bigint",
  "der",
- "digest 0.10.5",
+ "digest 0.10.6",
  "ff",
  "generic-array",
  "group",
@@ -538,7 +538,7 @@ version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e"
 dependencies = [
- "digest 0.10.5",
+ "digest 0.10.6",
 ]
 
 [[package]]
@@ -561,8 +561,8 @@ dependencies = [
 
 [[package]]
 name = "injective-cosmwasm"
-version = "0.1.73"
-source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/bank_queries#653653c8a20b80875c28aac4df5a46998a1262fc"
+version = "0.1.74"
+source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/msg_update_metadata#559fa13d486ebccafaac48984470590a0921f44d"
 dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 0.15.1",
@@ -577,7 +577,7 @@ dependencies = [
 [[package]]
 name = "injective-math"
 version = "0.1.9"
-source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/bank_queries#653653c8a20b80875c28aac4df5a46998a1262fc"
+source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/msg_update_metadata#559fa13d486ebccafaac48984470590a0921f44d"
 dependencies = [
  "bigint",
  "cosmwasm-std",
@@ -876,7 +876,7 @@ checksum = "82e6b795fe2e3b1e845bafcb27aa35405c4d47cdfc92af5fc8d3002f76cebdc0"
 dependencies = [
  "cfg-if",
  "cpufeatures",
- "digest 0.10.5",
+ "digest 0.10.6",
 ]
 
 [[package]]
@@ -885,7 +885,7 @@ version = "1.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74233d3b3b2f6d4b006dc19dee745e73e2a6bfb6f93607cd3b02bd5b00797d7c"
 dependencies = [
- "digest 0.10.5",
+ "digest 0.10.6",
  "rand_core 0.6.4",
 ]
 
