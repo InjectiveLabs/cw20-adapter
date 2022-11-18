@@ -209,7 +209,7 @@ mod tests {
 
             let deserialised_msg: Cw20ExecuteMsg = from_binary(msg).unwrap();
 
-            if let Cw20ExecuteMsg::Send { contract, amount, msg } = deserialised_msg {
+            if let Cw20ExecuteMsg::Send { contract, amount, .. } = deserialised_msg {
                 assert_eq!(CW_20_ADDRESS, contract.as_str(), "incorrect recipient in the transfer message");
                 assert_eq!(coins_to_burn.amount, amount, "incorrect amount in the transfer message");
             } else {
