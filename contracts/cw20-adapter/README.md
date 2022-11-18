@@ -34,6 +34,10 @@ and will send CW-20 tokens to `recipient` contract. Caller may provide optional 
 
 This method uses CW-20 `send` method
 
+### UpdateMetadata { addr : Addr} 
+Will query cw20 address (if registered) for metadata and will call setMetadata in the bank module (using TokenFactory 
+access method)
+Warning: this require chain v1.9. Can be called any time
 
 # Queries 
 
