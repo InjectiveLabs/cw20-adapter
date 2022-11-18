@@ -11,8 +11,8 @@ pub fn handle_update_metadata(
     env: Env,
     cw20_addr: Addr,
 ) -> Result<Response<InjectiveMsgWrapper>, ContractError> {
-    let contract_registered = CW20_CONTRACTS.contains(deps.storage, cw20_addr.as_str());
-    if !contract_registered {
+    let is_contract_registered = CW20_CONTRACTS.contains(deps.storage, cw20_addr.as_str());
+    if !is_contract_registered {
         return Err(ContractError::ContractNotRegistered);
     }
     let token_metadata = fetch_cw20_metadata(&deps, cw20_addr.as_str())?;

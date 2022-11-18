@@ -32,8 +32,8 @@ pub fn handle_redeem_msg(
         .ok_or(ContractError::NoRegisteredTokensProvided)?;
 
     let cw20_addr = get_cw20_address_from_denom(&denom_parser, &tokens_to_exchange.denom).ok_or(ContractError::NoRegisteredTokensProvided)?;
-    let contract_registered = CW20_CONTRACTS.contains(deps.storage, cw20_addr.as_str());
-    if !contract_registered {
+    let is_contract_registered = CW20_CONTRACTS.contains(deps.storage, cw20_addr.as_str());
+    if !is_contract_registered {
         return Err(ContractError::NoRegisteredTokensProvided);
     }
 

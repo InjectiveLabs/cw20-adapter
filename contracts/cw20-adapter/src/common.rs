@@ -5,6 +5,7 @@ use cw20::{Cw20QueryMsg, TokenInfoResponse};
 use injective_cosmwasm::{create_new_denom_msg, InjectiveMsgWrapper, InjectiveQuerier, InjectiveQueryWrapper};
 use regex::Regex;
 
+// 42 since the string length of inj addresses is 42, e.g. "inj1mtl2fykeceen4c74ddldrtdkq6fvnz79n8c592"
 pub fn denom_parser() -> Regex {
     Regex::new(r"factory/(\w{42})/(\w{42})").unwrap()
 }
