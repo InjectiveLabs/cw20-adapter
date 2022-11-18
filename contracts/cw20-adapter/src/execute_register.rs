@@ -1,8 +1,8 @@
-use std::cmp::Ordering;
-use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response};
-use injective_cosmwasm::{InjectiveMsgWrapper, InjectiveQueryWrapper};
 use crate::common::{is_contract_registered, query_denom_creation_fee, register_contract_and_get_message};
 use crate::error::ContractError;
+use cosmwasm_std::{Addr, DepsMut, Env, MessageInfo, Response};
+use injective_cosmwasm::{InjectiveMsgWrapper, InjectiveQueryWrapper};
+use std::cmp::Ordering;
 
 pub fn handle_register_msg(
     deps: DepsMut<InjectiveQueryWrapper>,
@@ -35,23 +35,21 @@ pub fn handle_register_msg(
     Ok(Response::new().add_message(create_denom_msg))
 }
 
-
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{
-        Addr,
-        Coin, CosmosMsg, SubMsg, testing::{mock_env, mock_info},
+        testing::{mock_env, mock_info},
+        Addr, Coin, CosmosMsg, SubMsg,
     };
-    
-    use injective_cosmwasm::{
-        InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
-        WasmMockQuerier,
-    };
+
+    use injective_cosmwasm::{mock_dependencies, InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, WasmMockQuerier};
 
     use handle_register_msg;
     use ContractError;
 
-    use crate::common::test_utils::{create_cw20_failing_info_query_handler, create_cw20_info_query_handler, create_denom_creation_fee_failing_handler};
+    use crate::common::test_utils::{
+        create_cw20_failing_info_query_handler, create_cw20_info_query_handler, create_denom_creation_fee_failing_handler,
+    };
     use crate::state::CW20_CONTRACTS;
 
     use super::*;
@@ -76,7 +74,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(10, "inj")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap();
+        .unwrap();
 
         let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(contract_registered, "contract wasn't registered");
@@ -111,7 +109,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(100, "inj"), Coin::new(20, "usdt")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap_err();
+        .unwrap_err();
         assert_eq!(response_err, ContractError::SuperfluousFundsProvided);
     }
 
@@ -130,7 +128,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(10, "inj")]),
             Addr::unchecked(non_cannonical_address.to_string()),
         )
-            .unwrap_err();
+        .unwrap_err();
 
         assert_eq!(ContractError::NotCw20Address, response, "should fail with wrong cw-20 address");
 
@@ -168,7 +166,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(10, "inj")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap_err();
+        .unwrap_err();
 
         assert!(response.to_string().contains("custom error"), "incorrect error returned");
 
@@ -185,7 +183,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(10, "usdt")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap_err();
+        .unwrap_err();
 
         assert_eq!(response, ContractError::NotEnoughBalanceToPayDenomCreationFee, "incorrect error returned");
 
@@ -203,7 +201,7 @@ mod tests {
             mock_info(SENDER, &[Coin::new(9, "inj")]),
             Addr::unchecked(CW_20_ADDRESS),
         )
-            .unwrap_err();
+        .unwrap_err();
 
         assert_eq!(response, ContractError::NotEnoughBalanceToPayDenomCreationFee, "incorrect error returned");
 
@@ -230,7 +228,13 @@ mod tests {
             ..Default::default()
         };
 
-        let response = handle_register_msg(deps.as_mut(), mock_env(), mock_info(SENDER, &[Coin::new(10, "inj")]), Addr::unchecked(CW_20_ADDRESS)).unwrap_err();
+        let response = handle_register_msg(
+            deps.as_mut(),
+            mock_env(),
+            mock_info(SENDER, &[Coin::new(10, "inj")]),
+            Addr::unchecked(CW_20_ADDRESS),
+        )
+        .unwrap_err();
 
         assert_eq!(response, ContractError::NotCw20Address, "incorrect error returned");
 

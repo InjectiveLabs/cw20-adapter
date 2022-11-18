@@ -1,7 +1,7 @@
-use cosmwasm_std::{Coin, DepsMut, Env, MessageInfo, Response, Uint128};
-use injective_cosmwasm::{create_mint_tokens_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
 use crate::common::{ensure_sufficient_create_denom_balance, get_denom, is_contract_registered, register_contract_and_get_message};
 use crate::error::ContractError;
+use cosmwasm_std::{Coin, DepsMut, Env, MessageInfo, Response, Uint128};
+use injective_cosmwasm::{create_mint_tokens_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
 
 pub fn handle_on_received_cw20_funds_msg(
     deps: DepsMut<InjectiveQueryWrapper>,
@@ -31,18 +31,17 @@ pub fn handle_on_received_cw20_funds_msg(
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{
-        Addr,
-        Coin, CosmosMsg, SubMsg, testing::{mock_env, mock_info}, Uint128,
+        testing::{mock_env, mock_info},
+        Addr, Coin, CosmosMsg, SubMsg, Uint128,
     };
-    
-    use injective_cosmwasm::{
-        InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
-        WasmMockQuerier,
-    };
+
+    use injective_cosmwasm::{mock_dependencies, InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, WasmMockQuerier};
 
     use ContractError;
 
-    use crate::common::test_utils::{CONTRACT_ADDRESS, create_custom_bank_balance_query_handler, create_cw20_info_query_handler, CW_20_ADDRESS, SENDER};
+    use crate::common::test_utils::{
+        create_custom_bank_balance_query_handler, create_cw20_info_query_handler, CONTRACT_ADDRESS, CW_20_ADDRESS, SENDER,
+    };
     use crate::state::CW20_CONTRACTS;
 
     use super::*;
@@ -183,7 +182,7 @@ mod tests {
             SENDER.to_string(),
             amount_to_send,
         )
-            .unwrap_err();
+        .unwrap_err();
 
         let contract_registered = CW20_CONTRACTS.contains(&deps.storage, CW_20_ADDRESS);
         assert!(!contract_registered, "contract was registered");

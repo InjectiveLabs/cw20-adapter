@@ -1,5 +1,3 @@
-
-
 use cosmwasm_std::{Addr, DepsMut, Env, Response};
 
 use injective_cosmwasm::{create_set_token_metadata_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
@@ -25,18 +23,16 @@ pub fn handle_update_metadata(
     Ok(Response::new().add_message(set_metadata_message))
 }
 
-
-
 #[cfg(test)]
 mod tests {
-    use cosmwasm_std::{Addr, CosmosMsg, SubMsg};
-    use cosmwasm_std::testing::mock_env;
-    use injective_cosmwasm::{InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies, WasmMockQuerier};
     use crate::common::get_denom;
-    use crate::common::test_utils::{CONTRACT_ADDRESS, create_cw20_info_query_handler, CW_20_ADDRESS};
+    use crate::common::test_utils::{create_cw20_info_query_handler, CONTRACT_ADDRESS, CW_20_ADDRESS};
     use crate::error::ContractError;
     use crate::execute_metadata::handle_update_metadata;
     use crate::state::CW20_CONTRACTS;
+    use cosmwasm_std::testing::mock_env;
+    use cosmwasm_std::{Addr, CosmosMsg, SubMsg};
+    use injective_cosmwasm::{mock_dependencies, InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, WasmMockQuerier};
 
     #[test]
     fn it_updates_metadata() {
@@ -58,8 +54,18 @@ mod tests {
         } = response.messages.get(0).unwrap()
         {
             assert_eq!(route, &InjectiveRoute::Tokenfactory, "submessage had wrong route");
-            if let InjectiveMsg::SetTokenMetadata {  denom, name, symbol, decimals }  = msg_data {
-                assert_eq!(get_denom(&Addr::unchecked(CONTRACT_ADDRESS), &Addr::unchecked(CW_20_ADDRESS)), denom.as_str(), "incorrect denom in set metadata message");
+            if let InjectiveMsg::SetTokenMetadata {
+                denom,
+                name,
+                symbol,
+                decimals,
+            } = msg_data
+            {
+                assert_eq!(
+                    get_denom(&Addr::unchecked(CONTRACT_ADDRESS), &Addr::unchecked(CW_20_ADDRESS)),
+                    denom.as_str(),
+                    "incorrect denom in set metadata message"
+                );
                 assert_eq!("SOL", symbol.as_str(), "incorrect symbol in set metadata message");
                 assert_eq!("Solana", name.as_str(), "incorrect name in set metadata message");
                 assert_eq!(6, *decimals, "incorrect decimals in set metadata message");

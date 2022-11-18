@@ -1,9 +1,9 @@
+use crate::error::ContractError;
+use crate::state::CW20_CONTRACTS;
 use cosmwasm_std::{Addr, Coin, CosmosMsg, DepsMut, Env, QuerierWrapper, StdResult};
 use cw20::{Cw20QueryMsg, TokenInfoResponse};
 use injective_cosmwasm::{create_new_denom_msg, InjectiveMsgWrapper, InjectiveQuerier, InjectiveQueryWrapper};
 use regex::Regex;
-use crate::error::ContractError;
-use crate::state::CW20_CONTRACTS;
 
 pub fn denom_parser() -> Regex {
     Regex::new(r"factory/(\w{42})/(\w{42})").unwrap()
@@ -38,7 +38,6 @@ pub fn ensure_address_is_cw20(deps: &DepsMut<InjectiveQueryWrapper>, addr: &str)
     }
 }
 
-
 pub fn is_contract_registered(deps: &DepsMut<InjectiveQueryWrapper>, addr: &Addr) -> bool {
     CW20_CONTRACTS.contains(deps.storage, addr.as_ref())
 }
@@ -68,7 +67,6 @@ pub fn register_contract_and_get_message(
     Ok(create_denom_message)
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,7 +94,7 @@ mod tests {
                 &denom_parser(),
                 "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h",
             )
-                .unwrap(),
+            .unwrap(),
             "inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h",
             "wrong cw20 address returned"
         )
@@ -109,7 +107,7 @@ mod tests {
                 &denom_parser(),
                 "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7",
             )
-                .is_none(),
+            .is_none(),
             "cw20 address returned"
         )
     }
@@ -129,7 +127,10 @@ mod tests {
 
 #[cfg(test)]
 pub mod test_utils {
-    use cosmwasm_std::{Addr, BalanceResponse, Binary, BlockInfo, Coin, ContractInfo, ContractResult, Env, QuerierResult, SystemError, SystemResult, Timestamp, to_binary, TransactionInfo, Uint128};
+    use cosmwasm_std::{
+        to_binary, Addr, BalanceResponse, Binary, BlockInfo, Coin, ContractInfo, ContractResult, Env, QuerierResult, SystemError, SystemResult,
+        Timestamp, TransactionInfo, Uint128,
+    };
     use cw20::TokenInfoResponse;
     use injective_cosmwasm::{HandlesBankBalanceQuery, HandlesFeeQuery, HandlesSmartQuery};
 

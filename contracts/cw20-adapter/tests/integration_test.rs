@@ -3,8 +3,8 @@ mod tests {
     use cosmwasm_std::testing::mock_info;
     use cosmwasm_std::{to_binary, Addr, Coin, Uint128};
     use cw20_adapter::common::get_denom;
-    use injective_cosmwasm::{create_simple_balance_bank_query_handler, create_smart_query_handler, mock_dependencies, WasmMockQuerier};
     use cw20_adapter::common::test_utils::{create_cw20_info_query_handler, mock_env};
+    use injective_cosmwasm::{create_simple_balance_bank_query_handler, create_smart_query_handler, mock_dependencies, WasmMockQuerier};
 
     use cw20_adapter::contract::{execute, instantiate};
     use cw20_adapter::msg::{ExecuteMsg, InstantiateMsg};

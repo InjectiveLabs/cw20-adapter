@@ -1,4 +1,4 @@
-use cosmwasm_std::{Binary, Coin, DepsMut, Env, MessageInfo, Response, to_binary, WasmMsg};
+use cosmwasm_std::{to_binary, Binary, Coin, DepsMut, Env, MessageInfo, Response, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use injective_cosmwasm::{create_burn_tokens_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
 
@@ -49,7 +49,7 @@ pub fn handle_redeem_msg(
             funds: vec![],
         },
         Some(msg) => WasmMsg::Execute {
-            contract_addr: cw20_addr.clone(),
+            contract_addr: cw20_addr,
             msg: to_binary(&Cw20ExecuteMsg::Send {
                 contract: recipient,
                 amount: tokens_to_exchange.amount,
@@ -61,17 +61,15 @@ pub fn handle_redeem_msg(
     Ok(Response::new().add_message(cw20_message).add_message(burn_tf_tokens_message))
 }
 
-
 #[cfg(test)]
 mod tests {
     use cosmwasm_std::{
-        Addr,
-        Coin, CosmosMsg, from_binary, SubMsg, testing::{mock_env, mock_info}, WasmMsg,
+        from_binary,
+        testing::{mock_env, mock_info},
+        Addr, Coin, CosmosMsg, SubMsg, WasmMsg,
     };
     use cw20::Cw20ExecuteMsg;
-    use injective_cosmwasm::{
-        InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
-    };
+    use injective_cosmwasm::{mock_dependencies, InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute};
 
     use handle_redeem_msg;
     use ContractError;
@@ -95,7 +93,7 @@ mod tests {
             Some(SENDER.to_string()),
             None,
         )
-            .unwrap();
+        .unwrap();
 
         assert_eq!(response.messages.len(), 2, "incorrect number of messages returned");
 
@@ -150,7 +148,7 @@ mod tests {
             Some(SENDER.to_string()),
             None,
         )
-            .unwrap_err();
+        .unwrap_err();
         assert_eq!(response, ContractError::NoRegisteredTokensProvided, "incorrect error returned")
     }
 
@@ -177,10 +175,9 @@ mod tests {
             Some(SENDER.to_string()),
             None,
         )
-            .unwrap_err();
+        .unwrap_err();
         assert_eq!(response, ContractError::NoRegisteredTokensProvided, "incorrect error returned")
     }
-
 
     #[test]
     fn it_handles_redeem_and_send_correctly() {
@@ -197,7 +194,7 @@ mod tests {
             Some(CW_20_ADDRESS.to_string()),
             Some(to_binary(&coins_to_burn).unwrap()), // doesn't matter what is the message
         )
-            .unwrap();
+        .unwrap();
 
         assert_eq!(response.messages.len(), 2, "incorrect number of messages returned");
 
