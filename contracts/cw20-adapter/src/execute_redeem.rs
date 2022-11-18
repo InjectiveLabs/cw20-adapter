@@ -1,10 +1,10 @@
-use std::cmp::Ordering;
 
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, to_binary, Uint128, WasmMsg};
+
+use cosmwasm_std::{Binary, Coin, DepsMut, Env, MessageInfo, Response, to_binary, WasmMsg};
 use cw20::{Cw20ExecuteMsg};
-use injective_cosmwasm::{create_burn_tokens_msg, create_mint_tokens_msg, create_new_denom_msg, create_set_token_metadata_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
+use injective_cosmwasm::{create_burn_tokens_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
 
-use crate::common::{denom_parser, ensure_address_is_cw20, get_cw20_address_from_denom, get_denom, query_denom_creation_fee};
+use crate::common::{denom_parser, get_cw20_address_from_denom};
 use crate::error::ContractError;
 use crate::state::CW20_CONTRACTS;
 
@@ -68,20 +68,18 @@ pub fn handle_redeem_msg(
 mod tests {
     use cosmwasm_std::{
         Addr,
-        BalanceResponse,
-        Coin, ContractResult, CosmosMsg, from_binary, QuerierResult, SubMsg, SystemError, SystemResult, testing::{mock_env, mock_info}, to_binary, Uint128, WasmMsg,
+        Coin, CosmosMsg, from_binary, SubMsg, testing::{mock_env, mock_info}, WasmMsg,
     };
     use cw20::Cw20ExecuteMsg;
     use injective_cosmwasm::{
-        create_smart_query_handler, HandlesBankBalanceQuery, HandlesFeeQuery, InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
-        WasmMockQuerier,
+        InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
     };
 
     use {handle_redeem_msg};
     use ContractError;
 
-    use crate::common::test_utils::{CONTRACT_ADDRESS, create_cw20_failing_info_query_handler, create_cw20_info_query_handler, CW_20_ADDRESS, SENDER};
-    use crate::execute_receive::handle_on_received_cw20_funds_msg;
+    use crate::common::test_utils::{CONTRACT_ADDRESS, CW_20_ADDRESS, SENDER};
+    
 
     use super::*;
 

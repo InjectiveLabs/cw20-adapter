@@ -562,7 +562,7 @@ dependencies = [
 [[package]]
 name = "injective-cosmwasm"
 version = "0.1.74"
-source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/msg_update_metadata#559fa13d486ebccafaac48984470590a0921f44d"
+source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=dev#f0c00001f04ee004f9c97ecbe012127c7111bc44"
 dependencies = [
  "cosmwasm-std",
  "cw-storage-plus 0.15.1",
@@ -577,7 +577,7 @@ dependencies = [
 [[package]]
 name = "injective-math"
 version = "0.1.9"
-source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=f/msg_update_metadata#559fa13d486ebccafaac48984470590a0921f44d"
+source = "git+https://github.com/InjectiveLabs/cw-injective.git?branch=dev#f0c00001f04ee004f9c97ecbe012127c7111bc44"
 dependencies = [
  "bigint",
  "cosmwasm-std",

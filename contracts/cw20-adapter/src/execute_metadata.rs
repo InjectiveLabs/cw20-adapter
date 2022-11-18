@@ -1,10 +1,10 @@
-use std::cmp::Ordering;
 
-use cosmwasm_std::{Addr, Binary, Coin, CosmosMsg, DepsMut, Env, MessageInfo, Response, StdResult, to_binary, Uint128, WasmMsg};
-use cw20::{Cw20ExecuteMsg, Cw20QueryMsg, TokenInfoResponse};
-use injective_cosmwasm::{addr_to_bech32, create_burn_tokens_msg, create_mint_tokens_msg, create_new_denom_msg, create_set_token_metadata_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
 
-use crate::common::{denom_parser, fetch_cw20_metadata, get_cw20_address_from_denom, get_denom, query_denom_creation_fee};
+use cosmwasm_std::{Addr, DepsMut, Env, Response};
+
+use injective_cosmwasm::{create_set_token_metadata_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
+
+use crate::common::{fetch_cw20_metadata, get_denom};
 use crate::error::ContractError;
 use crate::state::CW20_CONTRACTS;
 
@@ -74,7 +74,7 @@ mod tests {
     #[test]
     fn it_tries_to_update_not_registered_contract() {
         let mut deps = mock_dependencies();
-        let mut env = mock_env();
+        let env = mock_env();
 
         let err_response = handle_update_metadata(deps.as_mut(), env, Addr::unchecked(CW_20_ADDRESS)).unwrap_err();
         assert_eq!(err_response, ContractError::ContractNotRegistered, "incorrect error");

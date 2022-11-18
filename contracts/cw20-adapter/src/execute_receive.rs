@@ -32,18 +32,17 @@ pub fn handle_on_received_cw20_funds_msg(
 mod tests {
     use cosmwasm_std::{
         Addr,
-        BalanceResponse,
-        Coin, ContractResult, CosmosMsg, from_binary, QuerierResult, SubMsg, SystemError, SystemResult, testing::{mock_env, mock_info}, to_binary, Uint128, WasmMsg,
+        Coin, CosmosMsg, SubMsg, testing::{mock_env, mock_info}, Uint128,
     };
-    use cw20::Cw20ExecuteMsg;
+    
     use injective_cosmwasm::{
-        create_smart_query_handler, HandlesBankBalanceQuery, HandlesFeeQuery, InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
+        InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
         WasmMockQuerier,
     };
 
     use ContractError;
 
-    use crate::common::test_utils::{CONTRACT_ADDRESS, create_custom_bank_balance_query_handler, create_cw20_failing_info_query_handler, create_cw20_info_query_handler, CW_20_ADDRESS, SENDER};
+    use crate::common::test_utils::{CONTRACT_ADDRESS, create_custom_bank_balance_query_handler, create_cw20_info_query_handler, CW_20_ADDRESS, SENDER};
     use crate::state::CW20_CONTRACTS;
 
     use super::*;

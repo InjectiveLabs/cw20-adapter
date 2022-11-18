@@ -26,7 +26,7 @@ pub fn query_denom_creation_fee(querier_wrapper: &QuerierWrapper<InjectiveQueryW
 
 pub fn fetch_cw20_metadata(deps: &DepsMut<InjectiveQueryWrapper>, addr: &str) -> Result<TokenInfoResponse, ContractError> {
     let msg = Cw20QueryMsg::TokenInfo {};
-    deps.querier.query_wasm_smart(addr, &msg).or_else(|_e| Err(ContractError::NotCw20Address))
+    deps.querier.query_wasm_smart(addr, &msg).map_err(|_e| ContractError::NotCw20Address)
 }
 
 pub fn ensure_address_is_cw20(deps: &DepsMut<InjectiveQueryWrapper>, addr: &str) -> Result<(), ContractError> {

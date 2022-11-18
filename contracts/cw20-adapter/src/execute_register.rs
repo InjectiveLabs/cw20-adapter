@@ -40,12 +40,11 @@ pub fn handle_register_msg(
 mod tests {
     use cosmwasm_std::{
         Addr,
-        BalanceResponse,
-        Coin, ContractResult, CosmosMsg, from_binary, QuerierResult, SubMsg, SystemError, SystemResult, testing::{mock_env, mock_info}, to_binary, Uint128, WasmMsg,
+        Coin, CosmosMsg, SubMsg, testing::{mock_env, mock_info},
     };
-    use cw20::Cw20ExecuteMsg;
+    
     use injective_cosmwasm::{
-        create_smart_query_handler, HandlesBankBalanceQuery, HandlesFeeQuery, InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
+        InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
         WasmMockQuerier,
     };
 
@@ -231,7 +230,7 @@ mod tests {
             ..Default::default()
         };
 
-        let response = handle_register_msg(deps.as_mut(), mock_env(), mock_info(SENDER, &vec![Coin::new(10, "inj")]), Addr::unchecked(CW_20_ADDRESS)).unwrap_err();
+        let response = handle_register_msg(deps.as_mut(), mock_env(), mock_info(SENDER, &[Coin::new(10, "inj")]), Addr::unchecked(CW_20_ADDRESS)).unwrap_err();
 
         assert_eq!(response, ContractError::NotCw20Address, "incorrect error returned");
 

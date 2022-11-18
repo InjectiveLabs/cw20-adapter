@@ -40,5 +40,5 @@ rpath = false
 
 [patch.crates-io]
 #injective-cosmwasm = { path = "../cw-injective/packages/injective-cosmwasm"}
-injective-cosmwasm = { git = "https://github.com/InjectiveLabs/cw-injective.git", branch ="f/msg_update_metadata" }
+injective-cosmwasm = { git = "https://github.com/InjectiveLabs/cw-injective.git", branch ="dev" }
 #cw20-base = { path = "../cw-plus-inj/contracts/cw20-base" }
