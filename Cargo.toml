@@ -1,31 +1,44 @@
 [workspace]
-members = ["contracts/*", "packages/*"]
+members = ["contracts/*"]
 
 [workspace.package]
-version       = "0.0.0"
-authors       = ["Larry Engineer <gm@larry.engineer>"]
-edition       = "2021"
-license       = "AGPL-v3-or-later"
-homepage      = "https://larry.engineer"
-repository    = "https://github.com/steak-enjoyers/cw-template"
-documentation = "https://github.com/steak-enjoyers/cw-template#readme"
-keywords      = ["blockchain", "cosmos", "cosmwasm"]
-rust-version  = "1.64.0"
+version = "1.0.0"
+authors = ["Antoni Mysliborski <gm@larry.engineer>"]
+edition = "2021"
+license = "AGPL-v3-or-later"
+homepage = "https://injectivelabs.org"
+repository = "https://github.com/InjectiveLabs/cw20-adapter"
+documentation = "https://github.com/InjectiveLabs/cw20-adapter#readme"
+keywords = ["blockchain", "cosmos", "cosmwasm", "injective"]
+rust-version = "1.64.0"
 
 [workspace.dependencies]
 cosmwasm-schema = "1.1"
-cosmwasm-std    = "1.1"
-cw2             = "0.16"
+cosmwasm-std = "1.1"
+cw2 = "0.16"
+cw20 = "0.16.0"
 cw-storage-plus = "0.16"
-steak           = { version = "0.0.0", path = "./packages/steak" }
-thiserror       = "1.0"
+thiserror = "1.0"
+cw-item-set = "0.6.0"
+regex = "1.7.0"
+injective-cosmwasm = "0.1.74"
+anyhow = "1.0.66"
+secp256k1 = "0.6.2"
+rand = "0.4.6"
+tiny-keccak = "1.2.1"
+serde = "1.0.147"
 
 [profile.release]
-codegen-units    = 1
-debug            = false
+codegen-units = 1
+debug = false
 debug-assertions = false
-incremental      = false
-lto              = true
-opt-level        = 3
-overflow-checks  = true
-rpath            = false
+incremental = false
+lto = true
+opt-level = 3
+overflow-checks = true
+rpath = false
+
+[patch.crates-io]
+#injective-cosmwasm = { path = "../cw-injective/packages/injective-cosmwasm"}
+injective-cosmwasm = { git = "https://github.com/InjectiveLabs/cw-injective.git", branch ="dev" }
+#cw20-base = { path = "../cw-plus-inj/contracts/cw20-base" }
