@@ -20,6 +20,6 @@ pub enum ContractError {
     #[error("Some of the provided funds are not required")]
     SuperfluousFundsProvided,
 
-    #[error("")]
+    #[error("Address is not cw-20 contract")]
     NotCw20Address,
 }

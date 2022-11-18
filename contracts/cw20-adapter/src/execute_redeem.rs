@@ -1,7 +1,5 @@
-
-
 use cosmwasm_std::{Binary, Coin, DepsMut, Env, MessageInfo, Response, to_binary, WasmMsg};
-use cw20::{Cw20ExecuteMsg};
+use cw20::Cw20ExecuteMsg;
 use injective_cosmwasm::{create_burn_tokens_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
 
 use crate::common::{denom_parser, get_cw20_address_from_denom};
@@ -53,7 +51,7 @@ pub fn handle_redeem_msg(
         Some(msg) => WasmMsg::Execute {
             contract_addr: cw20_addr.clone(),
             msg: to_binary(&Cw20ExecuteMsg::Send {
-                contract: cw20_addr,
+                contract: recipient,
                 amount: tokens_to_exchange.amount,
                 msg,
             })?,
@@ -75,16 +73,15 @@ mod tests {
         InjectiveMsg, InjectiveMsgWrapper, InjectiveRoute, mock_dependencies,
     };
 
-    use {handle_redeem_msg};
+    use handle_redeem_msg;
     use ContractError;
 
     use crate::common::test_utils::{CONTRACT_ADDRESS, CW_20_ADDRESS, SENDER};
-    
 
     use super::*;
 
     #[test]
-    fn it_handles_redeem_correctly() {
+    fn it_handles_redeem_and_transfer_correctly() {
         let mut deps = mock_dependencies();
         let mut env = mock_env();
         env.contract.address = Addr::unchecked(CONTRACT_ADDRESS);
@@ -185,5 +182,60 @@ mod tests {
     }
 
 
+    #[test]
+    fn it_handles_redeem_and_send_correctly() {
+        let mut deps = mock_dependencies();
+        let mut env = mock_env();
+        env.contract.address = Addr::unchecked(CONTRACT_ADDRESS);
+        CW20_CONTRACTS.insert(&mut deps.storage, CW_20_ADDRESS).unwrap();
 
+        let coins_to_burn = Coin::new(10, format!("factory/{}/{}", CONTRACT_ADDRESS, CW_20_ADDRESS));
+        let response = handle_redeem_msg(
+            deps.as_mut(),
+            env,
+            mock_info(CW_20_ADDRESS, &[coins_to_burn.clone()]),
+            Some(CW_20_ADDRESS.to_string()),
+            Some(to_binary(&coins_to_burn).unwrap()), // doesn't matter what is the message
+        )
+            .unwrap();
+
+        assert_eq!(response.messages.len(), 2, "incorrect number of messages returned");
+
+        if let SubMsg {
+            msg: CosmosMsg::Wasm(WasmMsg::Execute { contract_addr, msg, funds }),
+            ..
+        } = response.messages.first().unwrap()
+        {
+            let expected_coins: Vec<Coin> = vec![];
+            assert_eq!(&expected_coins, funds, "incorrect funds found in execute message");
+            assert_eq!(CW_20_ADDRESS, contract_addr, "incorrect contact_addr in execute message");
+
+            let deserialised_msg: Cw20ExecuteMsg = from_binary(msg).unwrap();
+
+            if let Cw20ExecuteMsg::Send { contract, amount, msg } = deserialised_msg {
+                assert_eq!(CW_20_ADDRESS, contract.as_str(), "incorrect recipient in the transfer message");
+                assert_eq!(coins_to_burn.amount, amount, "incorrect amount in the transfer message");
+            } else {
+                panic!("incorrect injective message found")
+            }
+        } else {
+            panic!("incorrect submessage type found")
+        }
+
+        if let SubMsg {
+            msg: CosmosMsg::Custom(InjectiveMsgWrapper { route, msg_data }),
+            ..
+        } = response.messages.get(1).unwrap()
+        {
+            assert_eq!(route, &InjectiveRoute::Tokenfactory, "submessage had wrong route");
+            if let InjectiveMsg::Burn { sender, amount } = msg_data {
+                assert_eq!(CONTRACT_ADDRESS, sender.as_str(), "incorrect sender in the create denom message");
+                assert_eq!(&coins_to_burn, amount, "incorrect amount in the burn message");
+            } else {
+                panic!("incorrect injective message found")
+            }
+        } else {
+            panic!("incorrect submessage type found")
+        }
+    }
 }
