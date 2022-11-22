@@ -1,8 +1,8 @@
-use cosmwasm_std::{to_binary, Binary, Coin, DepsMut, Env, MessageInfo, Response, WasmMsg};
+use cosmwasm_std::{to_binary, Binary, DepsMut, Env, MessageInfo, Response, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use injective_cosmwasm::{create_burn_tokens_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
 
-use crate::common::{denom_parser, get_cw20_address_from_denom};
+use crate::common::{AdapterCoin, AdapterDenom};
 use crate::error::ContractError;
 use crate::state::CW20_CONTRACTS;
 
@@ -18,26 +18,30 @@ pub fn handle_redeem_msg(
     if info.funds.len() > 1 {
         return Err(ContractError::SuperfluousFundsProvided);
     }
-    let denom_parser = denom_parser();
     let tokens_to_exchange = info
         .funds
         .iter()
-        .find_map(|c| -> Option<Coin> {
-            if denom_parser.is_match(&c.denom) {
-                Some(c.clone())
-            } else {
-                None
+        .find_map(|c| -> Option<AdapterCoin> {
+            match AdapterDenom::new(&c.denom) {
+                Ok(denom) => Some(AdapterCoin { amount: c.amount, denom }),
+                Err(_) => None,
             }
+            // if denom_parser.is_match(&c.denom) {
+            //     Some(c.clone())
+            // } else {
+            //     None
+            // }
         })
         .ok_or(ContractError::NoRegisteredTokensProvided)?;
 
-    let cw20_addr = get_cw20_address_from_denom(&denom_parser, &tokens_to_exchange.denom).ok_or(ContractError::NoRegisteredTokensProvided)?;
-    let is_contract_registered = CW20_CONTRACTS.contains(deps.storage, cw20_addr.as_str());
+    let cw20_addr = tokens_to_exchange.denom.cw20_addr.clone();
+    // let cw20_addr = get_cw20_address_from_denom(&denom_parser, &tokens_to_exchange.denom).ok_or(ContractError::NoRegisteredTokensProvided)?;
+    let is_contract_registered = CW20_CONTRACTS.contains(deps.storage, &tokens_to_exchange.denom.cw20_addr);
     if !is_contract_registered {
         return Err(ContractError::NoRegisteredTokensProvided);
     }
 
-    let burn_tf_tokens_message = create_burn_tokens_msg(env.contract.address, tokens_to_exchange.clone());
+    let burn_tf_tokens_message = create_burn_tokens_msg(env.contract.address, tokens_to_exchange.as_coin());
 
     let cw20_message: WasmMsg = match submessage {
         None => WasmMsg::Execute {

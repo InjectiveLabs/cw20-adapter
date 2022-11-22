@@ -28,6 +28,5 @@ cw20 = { workspace = true }
 cw-storage-plus = { workspace = true }
 thiserror = { workspace = true }
 cw-item-set = { workspace = true }
-regex = { workspace = true }
 injective-cosmwasm = { workspace = true }
 serde = { workspace = true }
