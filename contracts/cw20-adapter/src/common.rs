@@ -13,6 +13,8 @@ pub struct AdapterDenom {
     pub cw20_addr: String,
 }
 
+const FACTORY_PREFIX: &str = "factory/";
+
 impl AdapterDenom {
     pub fn new<S>(denom: S) -> Result<Self, ContractError>
     where
@@ -23,10 +25,13 @@ impl AdapterDenom {
         if denom.len() != 93 {
             return Err(ContractError::NotCw20Address);
         }
-        if !denom.starts_with("factory/") {
+        if !denom.starts_with(FACTORY_PREFIX) {
             return Err(ContractError::NotCw20Address);
         }
+        // adapter address starts from index 8 and ends at 50 since "factory/" is 8 characters
+        // and inj addresses have 42 characters
         let adapter_part = &denom[8..50];
+        // remaining portion is the cw20 address
         let cw20_part = &denom[51..];
         Ok::<Result<AdapterDenom, ContractError>, ContractError>(AdapterDenom::from_components(adapter_part, cw20_part))?
     }
@@ -67,7 +72,7 @@ pub fn get_denom(adapter_address: &Addr, cw20addr: &Addr) -> String {
 }
 
 fn get_denom_from_str(adapter_address: &str, cw20addr: &str) -> String {
-    format!("factory/{}/{}", adapter_address, cw20addr)
+    format!("{}{}/{}", FACTORY_PREFIX, adapter_address, cw20addr)
 }
 
 pub fn query_denom_creation_fee(querier_wrapper: &QuerierWrapper<InjectiveQueryWrapper>) -> StdResult<Vec<Coin>> {
