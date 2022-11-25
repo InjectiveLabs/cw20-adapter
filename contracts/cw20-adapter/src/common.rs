@@ -1,23 +1,78 @@
+use cosmwasm_std::{Addr, Coin, CosmosMsg, DepsMut, Env, QuerierWrapper, StdResult, Uint128};
+use cw20::{Cw20QueryMsg, TokenInfoResponse};
+
+use injective_cosmwasm::{create_new_denom_msg, InjectiveMsgWrapper, InjectiveQuerier, InjectiveQueryWrapper};
+use serde::{Deserialize, Serialize};
+
 use crate::error::ContractError;
 use crate::state::CW20_CONTRACTS;
-use cosmwasm_std::{Addr, Coin, CosmosMsg, DepsMut, Env, QuerierWrapper, StdResult};
-use cw20::{Cw20QueryMsg, TokenInfoResponse};
-use injective_cosmwasm::{create_new_denom_msg, InjectiveMsgWrapper, InjectiveQuerier, InjectiveQueryWrapper};
-use regex::Regex;
 
-// 42 since the string length of inj addresses is 42, e.g. "inj1mtl2fykeceen4c74ddldrtdkq6fvnz79n8c592"
-pub fn denom_parser() -> Regex {
-    Regex::new(r"factory/(\w{42})/(\w{42})").unwrap()
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct AdapterDenom {
+    pub adapter_addr: String,
+    pub cw20_addr: String,
 }
 
-pub fn get_cw20_address_from_denom(parser: &Regex, denom: &str) -> Option<String> {
-    let captures = parser.captures(denom)?;
-    let cw20addr = captures.get(2)?;
-    Some(cw20addr.as_str().to_string())
+const FACTORY_PREFIX: &str = "factory/";
+
+impl AdapterDenom {
+    pub fn new<S>(denom: S) -> Result<Self, ContractError>
+    where
+        S: Into<String>,
+    {
+        let denom = denom.into();
+
+        if denom.len() != 93 {
+            return Err(ContractError::NotCw20Address);
+        }
+        if !denom.starts_with(FACTORY_PREFIX) {
+            return Err(ContractError::NotCw20Address);
+        }
+        // adapter address starts from index 8 and ends at 50 since "factory/" is 8 characters
+        // and inj addresses have 42 characters
+        let adapter_part = &denom[8..50];
+        // remaining portion is the cw20 address
+        let cw20_part = &denom[51..];
+        Ok::<Result<AdapterDenom, ContractError>, ContractError>(AdapterDenom::from_components(adapter_part, cw20_part))?
+    }
+
+    pub fn from_components<S>(adapter_addr: S, cw20_addr: S) -> Result<Self, ContractError>
+    where
+        S: Into<String>,
+    {
+        let adapter_addr = adapter_addr.into();
+        let cw20_addr = cw20_addr.into();
+        if !adapter_addr.chars().all(char::is_alphanumeric) {
+            return Err(ContractError::NotCw20Address);
+        }
+        if !cw20_addr.chars().all(char::is_alphanumeric) {
+            return Err(ContractError::NotCw20Address);
+        }
+        Ok(AdapterDenom { adapter_addr, cw20_addr })
+    }
+
+    pub fn as_string(&self) -> String {
+        get_denom_from_str(&self.adapter_addr, &self.cw20_addr)
+    }
+}
+
+pub struct AdapterCoin {
+    pub amount: Uint128,
+    pub denom: AdapterDenom,
+}
+
+impl AdapterCoin {
+    pub fn as_coin(&self) -> Coin {
+        Coin::new(self.amount.u128(), self.denom.as_string())
+    }
 }
 
 pub fn get_denom(adapter_address: &Addr, cw20addr: &Addr) -> String {
-    format!("factory/{}/{}", adapter_address, cw20addr)
+    get_denom_from_str(adapter_address.as_str(), cw20addr.as_str())
+}
+
+fn get_denom_from_str(adapter_address: &str, cw20addr: &str) -> String {
+    format!("{}{}/{}", FACTORY_PREFIX, adapter_address, cw20addr)
 }
 
 pub fn query_denom_creation_fee(querier_wrapper: &QuerierWrapper<InjectiveQueryWrapper>) -> StdResult<Vec<Coin>> {
@@ -74,52 +129,59 @@ mod tests {
 
     #[test]
     fn it_returns_true_on_correct_token_factory_denom() {
-        assert!(
-            denom_parser().is_match("factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h"),
-            "input was not treated as token factory denom"
-        )
+        AdapterDenom::new("factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h")
+            .expect("input was not treated as token factory denom");
     }
 
     #[test]
     fn it_returns_false_for_non_token_factory_denom() {
-        assert!(
-            !denom_parser().is_match(".factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7"),
-            "input was treated as token factory denom"
-        )
+        AdapterDenom::new(".factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7")
+            .expect_err("input was treated as token factory denom");
+    }
+
+    #[test]
+    fn it_returns_false_for_non_token_factory_denom_2() {
+        AdapterDenom::new("factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtz/winj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h")
+            .expect_err("input was treated as token factory denom");
+    }
+
+    #[test]
+    fn it_returns_false_for_non_token_factory_denom_3() {
+        AdapterDenom::new("factory/inj1pvrwm_uusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7")
+            .expect_err("input was treated as token factory denom");
+    }
+
+    #[test]
+    fn it_returns_false_for_non_token_factory_denom_4() {
+        AdapterDenom::new("factory/inj1pvrwmuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7/sddsjsdk")
+            .expect_err("input was treated as token factory denom");
     }
 
     #[test]
     fn it_returns_cw_20_address_for_token_factory_denom() {
+        let denom = AdapterDenom::new("factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h").unwrap();
         assert_eq!(
-            get_cw20_address_from_denom(
-                &denom_parser(),
-                "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h",
-            )
-            .unwrap(),
-            "inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h",
+            denom.adapter_addr, "inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw",
+            "wrong cw20 address returned"
+        );
+        assert_eq!(
+            denom.cw20_addr, "inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h",
             "wrong cw20 address returned"
         )
     }
 
     #[test]
     fn it_returns_none_cw_20_address_for_non_token_factory_denom() {
-        assert!(
-            get_cw20_address_from_denom(
-                &denom_parser(),
-                "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7",
-            )
-            .is_none(),
-            "cw20 address returned"
-        )
+        let denom = AdapterDenom::new("factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7").unwrap_err();
+        assert_eq!(denom, ContractError::NotCw20Address, "cw20 address returned")
     }
 
     #[test]
     fn it_returns_denom() {
+        let denom =
+            AdapterDenom::from_components("inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw", "inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h").unwrap();
         assert_eq!(
-            get_denom(
-                &Addr::unchecked("inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw".to_string()),
-                &Addr::unchecked("inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h".to_string()),
-            ),
+            denom.as_string(),
             "factory/inj1pvrwmjuusn9wh34j7y520g8gumuy9xtlt6xtzw/inj1n0qvel0zfmsxu3q8q23xzjvuwfxn0ydlhgyh7h",
             "wrong denom returned"
         )

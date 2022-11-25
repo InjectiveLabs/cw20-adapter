@@ -19,7 +19,8 @@ pub fn handle_register_msg(
     }
 
     let mut provided_funds = info.funds.iter();
-    for required_coin in required_funds {
+
+    for required_coin in &required_funds {
         let pf = provided_funds
             .find(|c| -> bool { c.denom == required_coin.denom })
             .ok_or(ContractError::NotEnoughBalanceToPayDenomCreationFee)?;
