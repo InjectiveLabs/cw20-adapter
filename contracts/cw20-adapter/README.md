@@ -2,6 +2,8 @@
 
 Contract that allows exchanging CW-20 tokens for injective-chain issued native tokens (using Token Factory module) and vice-versa.
 
+For more details refer to Notion doc: https://www.notion.so/injective/CW-20-to-TokenFactory-adapter-contract-specification-d56e37fd06af4c7e9b2d9b3447abea23
+
 ## Messages 
 
 ### RegisterCw20Contract { addr: Addr }
@@ -32,7 +34,7 @@ This method uses CW-20 `transfer` method (so it will not notify recipient in any
 Will redeem attached TF tokens (will fail if no registered tokens are provided)
 and will send CW-20 tokens to `recipient` contract. Caller may provide optional submessage 
 
-This method uses CW-20 `send` method
+This method uses CW-20 `send` method, so the recipient must be a contract which adheres to cw20 Recipient specification. 
 
 ### UpdateMetadata { addr : Addr} 
 Will query cw20 address (if registered) for metadata and will call setMetadata in the bank module (using TokenFactory 
@@ -46,3 +48,6 @@ Return a list of registered CW-20 contracts
 
 ### NewDenomFee {}
 Returns a fee required to register a new token-factory denom
+
+
+
