@@ -1,4 +1,4 @@
-use crate::common::{ensure_sufficient_create_denom_balance, get_denom, is_contract_registered, register_contract_and_get_message};
+use crate::common::{get_denom, is_contract_registered};
 use crate::error::ContractError;
 use cosmwasm_std::{Coin, DepsMut, Env, MessageInfo, Response, Uint128};
 use injective_cosmwasm::{create_mint_tokens_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
@@ -14,13 +14,10 @@ pub fn handle_on_received_cw20_funds_msg(
         return Err(ContractError::SuperfluousFundsProvided);
     }
 
-    let mut response = Response::new();
-
     let token_contract = info.sender;
 
     if !is_contract_registered(&deps, &token_contract) {
-        ensure_sufficient_create_denom_balance(&deps, &env)?;
-        response = response.add_message(register_contract_and_get_message(deps, &env, &token_contract)?);
+        return Err(ContractError::ContractNotRegistered);
     }
 
     let master = env.contract.address;
@@ -29,5 +26,5 @@ pub fn handle_on_received_cw20_funds_msg(
     let coins_to_mint = Coin::new(amount.u128(), denom);
     let mint_tf_tokens_message = create_mint_tokens_msg(master, coins_to_mint, recipient);
 
-    Ok(response.add_message(mint_tf_tokens_message))
+    Ok(Response::new().add_message(mint_tf_tokens_message))
 }

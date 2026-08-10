@@ -35,7 +35,7 @@ Amount is amount of CW-20 tokens transferred
 Msg is ignored
 
 Upon receiving this message, adapter will: 
-- check if calling address is registered - if not and contract address has enough funds, it will register it (see above). 
+- check that the calling CW-20 contract was registered through `RegisterCw20Contract`; unregistered contracts are rejected.
 - will mint and transfer to a `sender` address (original caller of cw20 send method) `amount` of TF tokens 
 
 ### RedeemAndTransfer { recipient: Option<String> }
@@ -65,6 +65,5 @@ Return a list of registered CW-20 contracts
 
 ### NewDenomFee {}
 Returns a fee required to register a new token-factory denom
-
 
 

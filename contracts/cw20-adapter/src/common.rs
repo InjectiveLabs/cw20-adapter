@@ -98,18 +98,6 @@ pub fn is_contract_registered(deps: &DepsMut<InjectiveQueryWrapper>, addr: &Addr
     CW20_CONTRACTS.contains(deps.storage, addr.as_ref())
 }
 
-pub fn ensure_sufficient_create_denom_balance(deps: &DepsMut<InjectiveQueryWrapper>, env: &Env) -> Result<(), ContractError> {
-    let required_funds = query_denom_creation_fee(&deps.querier)?;
-
-    for c in required_funds {
-        let balance = deps.querier.query_balance(env.contract.address.as_str(), c.denom)?;
-        if balance.amount < c.amount {
-            return Err(ContractError::NotEnoughBalanceToPayDenomCreationFee);
-        }
-    }
-    Ok(())
-}
-
 pub fn register_contract_and_get_message(
     deps: DepsMut<InjectiveQueryWrapper>,
     env: &Env,
