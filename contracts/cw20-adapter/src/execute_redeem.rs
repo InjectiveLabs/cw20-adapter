@@ -2,7 +2,7 @@ use cosmwasm_std::{to_json_binary, Binary, DepsMut, Env, MessageInfo, Response, 
 use cw20::Cw20ExecuteMsg;
 use injective_cosmwasm::{create_burn_tokens_msg, InjectiveMsgWrapper, InjectiveQueryWrapper};
 
-use crate::common::{AdapterCoin, AdapterDenom};
+use crate::common::{get_denom, AdapterCoin, AdapterDenom};
 use crate::error::ContractError;
 use crate::state::CW20_CONTRACTS;
 
@@ -18,18 +18,21 @@ pub fn handle_redeem_msg(
     if info.funds.len() > 1 {
         return Err(ContractError::SuperfluousFundsProvided);
     }
-    let tokens_to_exchange = info
-        .funds
-        .iter()
-        .find_map(|c| -> Option<AdapterCoin> {
-            match AdapterDenom::new(&c.denom) {
-                Ok(denom) => Some(AdapterCoin { amount: c.amount, denom }),
-                Err(_) => None,
-            }
-        })
-        .ok_or(ContractError::NoRegisteredTokensProvided)?;
+    let provided_coin = info.funds.first().ok_or(ContractError::NoRegisteredTokensProvided)?;
+    let adapter_denom = AdapterDenom::new(&provided_coin.denom).map_err(|_| ContractError::NoRegisteredTokensProvided)?;
 
-    let cw20_addr = tokens_to_exchange.denom.cw20_addr.clone();
+    let cw20_addr = deps.api.addr_validate(&adapter_denom.cw20_addr)?;
+    let expected_denom = get_denom(&env.contract.address, &cw20_addr);
+    if provided_coin.denom != expected_denom {
+        return Err(ContractError::InvalidAdapterDenom);
+    }
+
+    let tokens_to_exchange = AdapterCoin {
+        amount: provided_coin.amount,
+        denom: adapter_denom,
+    };
+
+    let cw20_addr = cw20_addr.to_string();
 
     let is_contract_registered = CW20_CONTRACTS.contains(deps.storage, &tokens_to_exchange.denom.cw20_addr);
     if !is_contract_registered {

@@ -5,6 +5,9 @@ use cosmwasm_std::{Addr, Binary, Uint128};
 pub struct InstantiateMsg {}
 
 #[cw_serde]
+pub struct MigrateMsg {}
+
+#[cw_serde]
 pub struct ReceiveSubmsg {
     pub(crate) recipient: String,
 }

@@ -22,4 +22,7 @@ pub enum ContractError {
 
     #[error("Address is not cw-20 contract")]
     NotCw20Address,
+
+    #[error("Token-factory denom was not created by this adapter")]
+    InvalidAdapterDenom,
 }
